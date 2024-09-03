@@ -1,0 +1,20 @@
+# pyproject.toml
+
+[project]
+name = 'oneping'
+version = '0.1'
+description = 'LLM provider abstraction layer.'
+readme = { file = 'README.md' , content-type = 'text/markdown' }
+authors = [{ name = 'Doug Hanley', email = 'doug@compendiumlabs.ai' }]
+license = { text = 'MIT' }
+classifiers = [
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+]
+keywords = ['llm', 'chat', 'embeddings']
+dependencies = []
+requires-python = '>=3.7'
+
+[project.urls]
+Homepage = 'http://github.com/CompendiumLabs/oneping'
