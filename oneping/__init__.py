@@ -1,5 +1,5 @@
-from .curl import get_llm_response
 from .server import run_llama_server
+from .curl import get_llm_response, stream_llm_response
 from .native import (
     get_anthropic_response, stream_anthropic_response,
     get_openai_response, stream_openai_response,

@@ -8,6 +8,7 @@ from .default import (
     SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL,
     payload_openai, payload_anthropic,
     response_openai, response_anthropic,
+    stream_openai,stream_anthropic,
 )
 
 ##
@@ -34,12 +35,14 @@ LLM_PROVIDERS = {
         'url': 'http://localhost:{port}/v1/chat/completions',
         'payload': payload_openai,
         'response': response_openai,
+        'stream': stream_openai,
     },
     'anthropic': {
         'url': 'https://api.anthropic.com/v1/messages',
         'payload': payload_anthropic,
         'authorize': authorize_anthropic,
         'response': response_anthropic,
+        'stream': stream_anthropic,
         'api_key_env': 'ANTHROPIC_API_KEY',
         'model': ANTHROPIC_MODEL,
         'headers': {
@@ -52,6 +55,7 @@ LLM_PROVIDERS = {
         'payload': payload_openai,
         'authorize': authorize_openai,
         'response': response_openai,
+        'stream': stream_openai,
         'api_key_env': 'OPENAI_API_KEY', 
         'model': OPENAI_MODEL,
     },
@@ -60,6 +64,7 @@ LLM_PROVIDERS = {
         'payload': payload_openai,
         'authorize': authorize_openai,
         'response': response_openai,
+        'stream': stream_openai,
         'api_key_env': 'FIREWORKS_API_KEY',
         'model': 'accounts/fireworks/models/llama-v3-70b-instruct',
     },
@@ -80,9 +85,19 @@ def compose_history(history, content):
     # usual case
     return history + [{'role': 'assistant', 'content': content}]
 
+def parse_stream(stream):
+    for chunk in stream:
+        if len(chunk) == 0:
+            continue
+        elif chunk.startswith(b'data: '):
+            text = chunk[6:]
+            if text == b'[DONE]':
+                break
+            yield text
+
 def get_llm_response(
-    prompt, provider='local', system=SYSTEM, prefill=None, history=None,
-    url=None, port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
+    prompt, provider='local', system=SYSTEM, prefill=None, history=None, url=None,
+    port=8000, api_key=None, model=None, max_tokens=1024, stream=False, **kwargs
 ):
     # external provider
     prov = LLM_PROVIDERS[provider]
@@ -114,15 +129,36 @@ def get_llm_response(
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
     payload = {**payload_model, **payload_message, 'max_tokens': max_tokens, **kwargs}
 
+    # handle streaming case
+    if stream:
+        # augment headers/payload
+        headers['Accept'] = 'text/event-stream'
+        payload['stream'] = True
+        extractor = prov['stream']
+
+        # request stream object
+        response = requests.post(url, headers=headers, data=json.dumps(payload), stream=True)
+        response.raise_for_status()
+
+        # extract stream contents
+        chunks = parse_stream(response.iter_lines())
+        replies = (extractor(json.loads(chunk)) for chunk in chunks)
+
+        # first chunk is history if needed
+        if history is not None:
+            return chain([history], replies)
+
+        # return pure stream
+        return replies
+
     # request response and return
-    data = json.dumps(payload)
-    response = requests.post(url, headers=headers, data=data)
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
     reply = response.json()
 
-    # get text reply from data
-    if (text := prov['response'](reply)) is None:
-        raise Exception('No valid text response generated')
+    # extract text
+    extractor = prov['response']
+    text = extractor(reply)
 
     # update history
     if history is not None:
@@ -131,3 +167,6 @@ def get_llm_response(
 
     # just return text
     return text
+
+def stream_llm_response(prompt, **kwargs):
+    return get_llm_response(prompt, stream=True, **kwargs)

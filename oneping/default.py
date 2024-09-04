@@ -55,4 +55,10 @@ def response_anthropic(reply):
     return content['text']
 
 def stream_openai(chunk):
-    return chunk.choices[0].delta.content
+    return chunk['choices'][0]['delta'].get('content', '')
+
+def stream_anthropic(chunk):
+    if chunk['type'] == 'content_block_delta':
+        return chunk['delta']['text']
+    else:
+        return ''
