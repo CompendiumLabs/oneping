@@ -65,8 +65,24 @@ LLM_PROVIDERS = {
     },
 }
 
+def compose_history(history, content):
+    if len(history) == 0:
+        return [{'role': 'user', 'content': content}]
+    last = history[-1]
+
+    # are we in prefill?
+    last_role, last_content = last['role'], last['content']
+    if last_role == 'assistant':
+        return history[:-1] + [
+            {'role': 'assistant', 'content': last_content + content},
+        ]
+
+    # usual case
+    return history + [{'role': 'assistant', 'content': content}]
+
 def get_llm_response(
-    prompt, provider='local', system=SYSTEM, url=None, port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
+    prompt, provider='local', system=SYSTEM, prefill=None, history=None,
+    url=None, port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
 ):
     # external provider
     prov = LLM_PROVIDERS[provider]
@@ -92,7 +108,7 @@ def get_llm_response(
     payload_model = {'model': model} if model is not None else {}
 
     # get message payload
-    payload_message = prov['payload'](system, prompt)
+    payload_message = prov['payload'](prompt, system=system, prefill=prefill, history=history)
 
     # base payload
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
@@ -108,5 +124,10 @@ def get_llm_response(
     if (text := prov['response'](reply)) is None:
         raise Exception('No valid text response generated')
 
-    # otherwise result text
-    return text.strip()
+    # update history
+    if history is not None:
+        history_sent = payload_message['messages']
+        return compose_history(history_sent, text)
+
+    # just return text
+    return text
