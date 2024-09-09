@@ -96,7 +96,7 @@ def parse_stream(stream):
             yield text
 
 def get_llm_response(
-    prompt, provider='local', system=SYSTEM, prefill=None, history=None, url=None,
+    prompt, provider='local', system=None, prefill=None, history=None, url=None,
     port=8000, api_key=None, model=None, max_tokens=1024, stream=False, **kwargs
 ):
     # external provider

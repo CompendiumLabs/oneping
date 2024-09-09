@@ -17,11 +17,13 @@ SYSTEM = 'You are a helpful and knowledgable AI assistant. Answer the queries pr
 ## message payloads
 ##
 
-def payload_openai(prompt, system=SYSTEM, prefill=None, history=None):
+def payload_openai(prompt, system=None, prefill=None, history=None):
     if type(history) is list:
         messages = history
-    else:
+    elif system is not None:
         messages = [{'role': 'system', 'content': system}]
+    else:
+        messages = []
     messages.append({'role': 'user', 'content': prompt})
     if prefill is not None:
         messages.append({'role': 'assistant', 'content': prefill})
@@ -29,7 +31,7 @@ def payload_openai(prompt, system=SYSTEM, prefill=None, history=None):
         'messages': messages,
     }
 
-def payload_anthropic(prompt, system=SYSTEM, prefill=None, history=None):
+def payload_anthropic(prompt, system=None, prefill=None, history=None):
     if type(history) is list:
         messages = history
     else:
@@ -37,10 +39,10 @@ def payload_anthropic(prompt, system=SYSTEM, prefill=None, history=None):
     messages.append({'role': 'user', 'content': prompt})
     if prefill is not None:
         messages.append({'role': 'assistant', 'content': prefill})
-    return {
-        'system': system,
-        'messages': messages,
-    }
+    payload = {'messages': messages}
+    if system is not None:
+        payload['system'] = system
+    return payload
 
 ##
 ## response extraction
