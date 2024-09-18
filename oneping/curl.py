@@ -8,7 +8,7 @@ from .default import (
     SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL,
     payload_openai, payload_anthropic,
     response_openai, response_anthropic,
-    stream_openai,stream_anthropic,
+    stream_openai, stream_anthropic,
 )
 
 ##
@@ -124,6 +124,7 @@ def get_llm_response(
 
     # get message payload
     payload_message = prov['payload'](prompt, system=system, prefill=prefill, history=history)
+    history_sent = payload_message['messages'] # includes prefill
 
     # base payload
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
@@ -144,9 +145,9 @@ def get_llm_response(
         chunks = parse_stream(response.iter_lines())
         replies = (extractor(json.loads(chunk)) for chunk in chunks)
 
-        # first chunk is history if needed
+        # user still needs to call `compose_history`
         if history is not None:
-            return chain([history], replies)
+            return history, replies
 
         # return pure stream
         return replies
@@ -162,8 +163,7 @@ def get_llm_response(
 
     # update history
     if history is not None:
-        history_sent = payload_message['messages']
-        return compose_history(history_sent, text)
+        return compose_history(history_sent, text), text
 
     # just return text
     return text
