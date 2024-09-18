@@ -11,7 +11,7 @@ OPENAI_MODEL = 'gpt-4o'
 ## system prompt
 ##
 
-SYSTEM = 'You are a helpful and knowledgable AI assistant. Answer the queries provided to the best of your ability.'
+SYSTEM = 'You are a helpful and knowledgeable AI assistant. Answer the queries provided to the best of your ability.'
 
 ##
 ## message payloads

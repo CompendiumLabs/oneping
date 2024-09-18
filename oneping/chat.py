@@ -65,18 +65,10 @@ def main(provider='local', **kwargs):
 
     class ChatMessage(Static):
         def __init__(self, title, text, **kwargs):
-            super().__init__(**kwargs)
-            self.title = title
-            self.text = text
-
-        def render(self) -> str:
-            border_color = role_colors[self.title]
-            title_style = Style(bold=True, color=border_color)
-            border_style = Style(color=border_color)
-            title = Text(self.title, style=title_style)
-            return Panel(
-                self.text, title=title, title_align='left', border_style=border_style
-            )
+            super().__init__(text, **kwargs)
+            self.border_title = title
+            self.styles.border = ('round', role_colors[title])
+            self.styles.padding = (0, 1)
 
     # chat history widget
     class ChatHistory(Static):
