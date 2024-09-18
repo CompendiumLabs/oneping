@@ -61,7 +61,8 @@ def main(provider='local', **kwargs):
     from textual import on, work
     from textual.app import App, ComposeResult
     from textual.widget import Widget
-    from textual.widgets import Header, Input, Static, Log
+    from textual.widgets import Header, Input, Static, Markdown
+    from textual.containers import VerticalScroll
     from textual.events import Key
     from textual.reactive import reactive
     from rich.style import Style
@@ -71,16 +72,21 @@ def main(provider='local', **kwargs):
     # make chat history
     chat = Chat(provider, **kwargs)
 
-    class ChatMessage(Static):
+    class ChatMessage(Markdown):
         def __init__(self, title, text, **kwargs):
             super().__init__(text, **kwargs)
             self.border_title = title
             self.styles.border = ('round', role_colors[title])
             self.styles.padding = (0, 1)
+            self.styles.margin = (0, 0)
 
     # chat history widget
-    class ChatHistory(Static):
-        def compose(self) -> ComposeResult:
+    class ChatHistory(VerticalScroll):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.styles.scrollbar_size_vertical = 0
+
+        def compose(self):
             yield ChatMessage('system', chat.system)
 
     class BarePrompt(Input):
@@ -96,8 +102,8 @@ def main(provider='local', **kwargs):
             self.border_title = 'user'
             self.styles.border = ('round', 'white')
 
-        def compose(self) -> ComposeResult:
-            yield BarePrompt(id='prompt', height=3)
+        def compose(self):
+            yield BarePrompt(id='prompt', height=3, placeholder='Type a message...')
 
     # textualize chat app
     class ChatApp(App):
@@ -107,35 +113,49 @@ def main(provider='local', **kwargs):
         }
         """
 
-        def compose(self) -> ComposeResult:
+        def compose(self):
             yield Header(id='header')
             yield ChatHistory(id='history')
             yield ChatInput(id='input')
 
-        def on_mount(self) -> None:
+        def on_mount(self):
+            prompt = self.query_one('#prompt')
             self.title = f'oneping: {provider}'
+            self.set_focus(prompt)
+
+        def on_key(self, event):
+            history = self.query_one('#history')
+            if event.key == 'PageUp':
+                history.scroll_up(animate=False)
+            elif event.key == 'PageDown':
+                history.scroll_down(animate=False)
 
         @on(Input.Submitted)
-        async def on_input(self, event: Input.Submitted) -> None:
+        async def on_input(self, event):
             prompt = self.query_one('#prompt')
             history = self.query_one('#history')
 
             # ignore empty messages
             if len(message := prompt.value) == 0:
                 return
-            prompt.value = ''
+            prompt.clear()
 
             # mount user query and start response
             response = ChatMessage('assistant', '')
-            history.mount(ChatMessage('user', message))
-            history.mount(response)
+            await history.mount(ChatMessage('user', message))
+            await history.mount(response)
+
+            # make update method
+            def update(reply):
+                response.update(reply)
+                history.scroll_end()
 
             # send message
             stream = chat.stream(message)
-            self.pipe_stream(stream, response.update)
+            self.pipe_stream(stream, update)
 
         @work(thread=True)
-        def pipe_stream(self, stream, setter) -> None:
+        def pipe_stream(self, stream, setter):
             for reply in cumcat(stream):
                 self.call_from_thread(setter, reply)
 
