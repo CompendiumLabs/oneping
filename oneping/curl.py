@@ -3,6 +3,7 @@
 import os
 import json
 import requests
+import aiohttp
 
 from .default import (
     SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL,
@@ -70,6 +71,10 @@ LLM_PROVIDERS = {
     },
 }
 
+##
+## requests
+##
+
 def compose_history(history, content):
     if len(history) == 0:
         return [{'role': 'user', 'content': content}]
@@ -85,24 +90,14 @@ def compose_history(history, content):
     # usual case
     return history + [{'role': 'assistant', 'content': content}]
 
-def parse_stream(stream):
-    for chunk in stream:
-        if len(chunk) == 0:
-            continue
-        elif chunk.startswith(b'data: '):
-            text = chunk[6:]
-            if text == b'[DONE]':
-                break
-            yield text
-
-def get_llm_response(
+def prepare_request(
     prompt, provider='local', system=None, prefill=None, history=None, url=None,
-    port=8000, api_key=None, model=None, max_tokens=1024, stream=False, **kwargs
+    port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
 ):
     # external provider
     prov = LLM_PROVIDERS[provider]
 
-    # get url to request
+    # get full url
     if url is None:
         url = prov['url'].format(port=port)
 
@@ -123,34 +118,35 @@ def get_llm_response(
     payload_model = {'model': model} if model is not None else {}
 
     # get message payload
-    payload_message = prov['payload'](prompt, system=system, prefill=prefill, history=history)
-    history_sent = payload_message['messages'] # includes prefill
+    payload_message = prov['payload'](prompt=prompt, system=system, prefill=prefill, history=history)
 
     # base payload
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
     payload = {**payload_model, **payload_message, 'max_tokens': max_tokens, **kwargs}
 
-    # handle streaming case
-    if stream:
-        # augment headers/payload
-        headers['Accept'] = 'text/event-stream'
-        payload['stream'] = True
-        extractor = prov['stream']
+    # return url, headers, payload
+    return url, headers, payload
 
-        # request stream object
-        response = requests.post(url, headers=headers, data=json.dumps(payload), stream=True)
-        response.raise_for_status()
+##
+## sync requests
+##
 
-        # extract stream contents
-        chunks = parse_stream(response.iter_lines())
-        replies = (extractor(json.loads(chunk)) for chunk in chunks)
+def parse_stream(stream):
+    for chunk in stream:
+        if len(chunk) == 0:
+            continue
+        elif chunk.startswith(b'data: '):
+            text = chunk[6:]
+            if text == b'[DONE]':
+                break
+            yield text
 
-        # user still needs to call `compose_history`
-        if history is not None:
-            return history, replies
+def get_llm_response(prompt, provider='local', history=None, **kwargs):
+    # get provider
+    prov = LLM_PROVIDERS[provider]
 
-        # return pure stream
-        return replies
+    # prepare request
+    url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
 
     # request response and return
     response = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -168,5 +164,65 @@ def get_llm_response(
     # just return text
     return text
 
-def stream_llm_response(prompt, **kwargs):
-    return get_llm_response(prompt, stream=True, **kwargs)
+##
+## async requests
+##
+
+async def iter_lines_buffered(stream):
+    buffer = b''
+    async for chunk in stream:
+        buffer += chunk
+        lines = buffer.split(b'\n')
+        buffer = lines.pop()
+        for line in lines:
+            if len(line) > 0:
+                yield line
+    if len(buffer) > 0:
+        yield buffer
+
+async def parse_stream_async(stream):
+    async for chunk in stream:
+        if len(chunk) == 0:
+            continue
+        elif chunk.startswith(b'data: '):
+            text = chunk[6:]
+            if text == b'[DONE]':
+                break
+            yield text
+
+async def extract_stream_async(stream, extractor):
+    async for js in stream:
+        data = json.loads(js)
+        yield extractor(data)
+
+async def stream_llm_response(prompt, provider='local', history=None, prefill=None, **kwargs):
+    # get provider
+    prov = LLM_PROVIDERS[provider]
+
+    # prepare request
+    url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
+
+    # augment headers/payload
+    headers['Accept'] = 'text/event-stream'
+    payload['stream'] = True
+
+    # request stream object
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers, data=json.dumps(payload)) as response:
+            # check for errors
+            response.raise_for_status()
+
+            # extract stream contents
+            chunks = response.content.iter_chunked(1024)
+            stream = iter_lines_buffered(chunks)
+            parsed = parse_stream_async(stream)
+
+            # yield prefill for consistency
+            if prefill is not None:
+                yield prefill
+
+            # extract stream contents
+            extractor = prov['stream']
+            async for text in parsed:
+                data = json.loads(text)
+                yield extractor(data)

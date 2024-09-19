@@ -6,3 +6,4 @@ from .native import (
     get_fireworks_response, stream_fireworks_response,
     get_xai_response, stream_xai_response,
 )
+from .chat import Chat

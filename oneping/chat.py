@@ -2,15 +2,15 @@
 # https://textual.textualize.io/blog/2024/09/15/anatomy-of-a-textual-user-interface/
 
 from .default import SYSTEM
-from .curl import get_llm_response, stream_llm_response, compose_history
+from .curl import LLM_PROVIDERS, get_llm_response, stream_llm_response, compose_history
 
 # stream printer
 def sprint(s):
     print(s, end='', flush=True)
 
-def cumcat(stream):
+async def cumcat(stream):
     reply = ''
-    for chunk in stream:
+    async for chunk in stream:
         reply += chunk
         yield reply
 
@@ -20,34 +20,40 @@ class Chat:
         self.provider = provider
         self.system = SYSTEM if system is None else system
         self.kwargs = kwargs
-        self.history = []
+
+        # set up initial history (either [] or [system])
+        payload = LLM_PROVIDERS[provider]['payload']
+        self.history = payload(system=self.system)['messages']
 
     def __call__(self, prompt, **kwargs):
         return self.chat(prompt, **kwargs)
 
-    def chat(self, prompt, prefill=None, **kwargs):
+    def chat(self, prompt, **kwargs):
         # get full history and text
         self.history, text = get_llm_response(
-            prompt, history=self.history, prefill=prefill, system=self.system, **self.kwargs, **kwargs
+            prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
         )
 
         # return text
         return text
 
-    def stream(self, prompt, prefill=None, **kwargs):
+    async def stream(self, prompt, **kwargs):
         # get input history (plus prefill) and stream
-        self.history, replies = stream_llm_response(
-            prompt, history=self.history, prefill=prefill, system=self.system, **self.kwargs, **kwargs
+        replies = stream_llm_response(
+            prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
         )
 
         # yield text stream
         reply = ''
-        for chunk in replies:
+        async for chunk in replies:
             yield chunk
             reply += chunk
 
-        # update final history
-        self.history = compose_history(self.history, reply)
+        # update final history (reply includes prefill)
+        self.history += [
+            {'role': 'user'     , 'content': prompt},
+            {'role': 'assistant', 'content': reply },
+        ]
 
 # colors
 role_colors = {
@@ -70,7 +76,7 @@ def main(provider='local', **kwargs):
     from rich.panel import Panel
 
     # make chat history
-    chat = Chat(provider, **kwargs)
+    chat = Chat(provider=provider, **kwargs)
 
     class ChatMessage(Markdown):
         def __init__(self, title, text, **kwargs):
@@ -141,7 +147,7 @@ def main(provider='local', **kwargs):
             prompt.clear()
 
             # mount user query and start response
-            response = ChatMessage('assistant', '')
+            response = ChatMessage('assistant', '...')
             await history.mount(ChatMessage('user', message))
             await history.mount(response)
 
@@ -155,8 +161,8 @@ def main(provider='local', **kwargs):
             self.pipe_stream(stream, update)
 
         @work(thread=True)
-        def pipe_stream(self, stream, setter):
-            for reply in cumcat(stream):
+        async def pipe_stream(self, stream, setter):
+            async for reply in cumcat(stream):
                 self.call_from_thread(setter, reply)
 
     # run app
