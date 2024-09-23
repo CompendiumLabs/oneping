@@ -20,13 +20,14 @@ class Chat:
         self.provider = provider
         self.system = SYSTEM if system is None else system
         self.kwargs = kwargs
-
-        # set up initial history (either [] or [system])
-        payload = LLM_PROVIDERS[provider]['payload']
-        self.history = payload(system=self.system)['messages']
+        self.clear()
 
     def __call__(self, prompt, **kwargs):
         return self.chat(prompt, **kwargs)
+
+    def clear(self):
+        payload = LLM_PROVIDERS[self.provider]['payload']
+        self.history = payload(system=self.system)['messages']
 
     def chat(self, prompt, **kwargs):
         # get full history and text
