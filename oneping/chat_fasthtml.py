@@ -1,5 +1,8 @@
 from fasthtml.components import Use
-from fasthtml.common import serve, FastHTML, Script, Title, Body, Div, Span, Hidden, Form, Button, Input, Textarea, Svg
+from fasthtml.common import (
+    serve, FastHTML, Script, Style, Title, Body, Div, Span, Hidden,
+    Form, Button, Input, Textarea, Svg
+)
 
 ##
 ## global
@@ -23,13 +26,16 @@ def ChatInput(placeholder='Type a message...'):
 def ChatSystem(prompt):
     return Div(prompt, cls='italic text-gray-500')
 
-def ChatBox(role, content, highlight=False):
-    extra = 'focus-within:border-blue-400 hover:border-blue-400' if highlight else ''
-    title = Div(Span(role, cls='relative top-[-5px]'), cls='absolute top-[-10px] left-[10px] h-[20px] font-bold pl-1 pr-1 border border-gray-400 rounded bg-white small-caps')
-    return Div(cls=f'chat-box relative border border-gray-400 rounded m-2 p-2 pt-3 bg-gray-100 {extra}')(title, content)
+def ChatBox(role, content, prompt=False):
+    extra = 'focus-within:border-blue-400 hover:border-blue-400' if prompt else ''
+    boxid = 'prompt-box' if prompt else None
+    title = Div(Span(role, cls='relative top-[-5px]'), cls='absolute top-[-10px] left-[10px] h-[20px] font-bold pl-1 pr-1 border border-gray-400 rounded bg-white small-caps cursor-default select-none')
+    return Div(id=boxid, cls=f'chat-box relative border border-gray-400 rounded m-2 p-2 pt-3 bg-gray-100 {extra}')(title, content)
 
 def ChatMessage(id, message=''):
-    return Div(id=id, cls='whitespace-pre-wrap')(message)
+    hidden = Div(id=id, cls='message-data hidden')(message)
+    display = Div(cls='message-display')
+    return Div(cls='message')(hidden, display)
 
 def ChatPrompt(route, trigger=ctrl_enter):
     prompt = ChatInput()
@@ -53,7 +59,7 @@ def ChatList(*children):
 
 def ChatWindow(chat, route):
     system = ChatBox('system', ChatSystem(chat.system))
-    prompt = ChatBox('user', ChatPrompt(route), highlight=True)
+    prompt = ChatBox('user', ChatPrompt(route), prompt=True)
     messages = ChatList(*ChatHistory(chat.history))
     return Div(id='oneping', cls='flex flex-col h-full w-full pt-3 overflow-y-scroll')(system, messages, prompt)
 
@@ -94,8 +100,80 @@ async def websocket(prompt, chat, send):
 
 def FastHTMLChat(chat):
     # create app object
-    hdrs = [Script(src="https://cdn.tailwindcss.com")]
+    hdrs = [
+        Script(src="https://cdn.tailwindcss.com"),
+        Script(src='https://cdn.jsdelivr.net/npm/marked/marked.min.js')
+    ]
     app = FastHTML(hdrs=hdrs, ws_hdr=True)
+
+    # markdown rendering
+    script = Script("""
+    function focusPrompt() {
+        const prompt = document.querySelector('#prompt');
+        prompt.focus();
+    }
+    function renderBox(box) {
+        const data = box.querySelector('.message-data').textContent;
+        const display = box.querySelector('.message-display');
+        display.innerHTML = marked.parse(data);
+    }
+    document.addEventListener('htmx:wsBeforeMessage', event => {
+        const message = event.detail.message;
+        const prompt_box = document.querySelector('#prompt-box');
+        if (message == 'START') {
+            prompt_box.classList.add('hidden');
+        } else if (message == 'DONE') {
+            prompt_box.classList.remove('hidden');
+        }
+    });
+    document.addEventListener('htmx:wsAfterMessage', event => {
+        const last = document.querySelector('#chat > .chat-box:last-child > .message');
+        if (last == null) return;
+        renderBox(last);
+        const chat = document.querySelector('#chat');
+        chat.scrollTop = chat.scrollHeight;
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        const boxes = document.querySelectorAll('#chat > .chat-box > .message');
+        for (const box of boxes) {
+            renderBox(box);
+        }
+        focusPrompt();
+    });
+    """)
+
+    # markdown style
+    style = Style("""
+    .hidden {
+        display: none;
+    }
+    .message-display ol {
+        list-style-type: decimal;
+        padding-left: 40px;
+    }
+
+    .message-display ul {
+        list-style-type: disc;
+        padding-left: 40px;
+    }
+
+    .message-display pre {
+        background-color: white;
+        border: 1px solid #ddd;
+        line-height: 1.2;
+    }
+
+    .message-display code {
+        font-family: monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        margin: 0 !important;
+    }
+
+    .message-display *:not(:last-child) {
+        margin-bottom: 10px;
+    }
+    """)
 
     # connect main
     @app.route('/')
@@ -103,7 +181,7 @@ def FastHTMLChat(chat):
         title = Title('Oneping Chat')
         wind = ChatWindow(chat, '/generate')
         body = Body(cls='h-full w-full')(wind)
-        return title, body
+        return (title, style, script), body
 
     # connect websocket
     @app.ws('/generate')
