@@ -14,7 +14,7 @@ def sprint(text):
 ## fasthtml components
 ##
 
-def ChatInput(placeholder='Enter a query...'):
+def ChatInput(placeholder='Type a message...'):
     return Textarea(
         name='prompt', id='prompt', cls='h-[50px] grow rounded bg-gray-100 resize-none outline-none',
         placeholder=placeholder, type='text', hx_swap_oob='true'
@@ -23,9 +23,10 @@ def ChatInput(placeholder='Enter a query...'):
 def ChatSystem(prompt):
     return Div(prompt, cls='italic text-gray-500')
 
-def ChatBox(role, content, id=None):
+def ChatBox(role, content, highlight=False):
+    extra = 'focus-within:border-blue-400 hover:border-blue-400' if highlight else ''
     title = Div(Span(role, cls='relative top-[-5px]'), cls='absolute top-[-10px] left-[10px] h-[20px] font-bold pl-1 pr-1 border border-gray-400 rounded bg-white small-caps')
-    return Div(id=id, cls='chat-box relative border border-gray-400 rounded m-2 p-2 pt-3 bg-gray-100')(title, content)
+    return Div(cls=f'chat-box relative border border-gray-400 rounded m-2 p-2 pt-3 bg-gray-100 {extra}')(title, content)
 
 def ChatMessage(id, message=''):
     return Div(id=id, cls='whitespace-pre-wrap')(message)
@@ -52,7 +53,7 @@ def ChatList(*children):
 
 def ChatWindow(chat, route):
     system = ChatBox('system', ChatSystem(chat.system))
-    prompt = ChatBox('user', ChatPrompt(route))
+    prompt = ChatBox('user', ChatPrompt(route), highlight=True)
     messages = ChatList(*ChatHistory(chat.history))
     return Div(id='oneping', cls='flex flex-col h-full w-full pt-3 overflow-y-scroll')(system, messages, prompt)
 
@@ -101,7 +102,7 @@ def FastHTMLChat(chat):
     def index():
         title = Title('Oneping Chat')
         wind = ChatWindow(chat, '/generate')
-        body = Body(cls='bg-gray-100 h-full w-full')(wind)
+        body = Body(cls='h-full w-full')(wind)
         return title, body
 
     # connect websocket
