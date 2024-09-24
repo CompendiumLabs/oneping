@@ -2,7 +2,7 @@ import sys
 import fire
 
 from .curl import get_llm_response, stream_llm_response
-from .chat import main
+from .chat import chat_main
 from .server import run_llama_server
 
 def reply(
@@ -39,12 +39,12 @@ async def stream(
     print()
 
 def chat(
-    provider='local', system=None, url=None, port=8000, api_key=None, model=None,
-    max_tokens=1024, **kwargs
+    interface='textual', provider='local', system=None, url=None, port=8000, api_key=None, model=None,
+    max_tokens=1024, chat_host='127.0.0.1', chat_port=5000, **kwargs
 ):
-    main(
-        provider=provider, system=system, url=url, port=port, api_key=api_key,
-        model=model, max_tokens=max_tokens, **kwargs
+    chat_main(
+        interface=interface, provider=provider, system=system, url=url, port=port, api_key=api_key,
+        model=model, max_tokens=max_tokens, chat_host=chat_host, chat_port=chat_port, **kwargs
     )
 
 def serve(model, n_gpu_layers=-1, **kwargs):

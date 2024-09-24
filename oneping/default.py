@@ -18,12 +18,12 @@ SYSTEM = 'You are a helpful and knowledgeable AI assistant. Answer the queries p
 ##
 
 def payload_openai(prompt=None, system=None, prefill=None, history=None):
-    if type(history) is list:
-        messages = [*history]
-    elif system is not None:
+    if system is not None:
         messages = [{'role': 'system', 'content': system}]
     else:
         messages = []
+    if type(history) is list:
+        messages += history
     if prompt is not None:
         messages.append({'role': 'user', 'content': prompt})
     if prefill is not None:
