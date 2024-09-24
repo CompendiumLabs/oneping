@@ -161,13 +161,13 @@ def FastHTMLChat(chat):
         background-color: white;
         border: 1px solid #ddd;
         line-height: 1.2;
+        padding: 10px;
     }
 
     .message-display code {
         font-family: monospace;
         font-size: 12px;
         white-space: pre-wrap;
-        margin: 0 !important;
     }
 
     .message-display *:not(:last-child) {
