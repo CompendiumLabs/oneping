@@ -75,6 +75,13 @@ LLM_PROVIDERS = {
 ## requests
 ##
 
+def strip_system(messages):
+    if len(messages) == 0:
+        return messages
+    if messages[0]['role'] == 'system':
+        return messages[1:]
+    return messages
+
 def compose_history(history, content):
     if len(history) == 0:
         return [{'role': 'user', 'content': content}]
@@ -159,6 +166,7 @@ def get_llm_response(prompt, provider='local', history=None, **kwargs):
 
     # update history
     if history is not None:
+        history_sent = strip_system(payload['messages'])
         return compose_history(history_sent, text), text
 
     # just return text

@@ -4,14 +4,13 @@ from fasthtml.common import (
     Form, Button, Input, Textarea, Svg
 )
 
+from .default import sprint
+
 ##
 ## global
 ##
 
 ctrl_enter = 'keydown[ctrlKey&&key==\'Enter\'] from:body'
-
-def sprint(text):
-    print(text, end='', flush=True)
 
 ##
 ## fasthtml components

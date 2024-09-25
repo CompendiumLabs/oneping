@@ -66,3 +66,20 @@ def stream_anthropic(chunk):
         return chunk['delta']['text']
     else:
         return ''
+
+##
+## streaming
+##
+
+def sprint(text):
+    print(text, end='', flush=True)
+
+async def streamer(stream):
+    async for chunk in stream:
+        sprint(chunk)
+
+async def cumcat(stream):
+    reply = ''
+    async for chunk in stream:
+        reply += chunk
+        yield reply

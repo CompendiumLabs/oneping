@@ -67,12 +67,6 @@ def chat_fasthtml(provider='local', chat_host='127.0.0.1', chat_port=5000, reloa
     server = uvicorn.Server(config)
     server.run()
 
-# main interface
-def chat_main(interface='textual', provider='local', chat_host='127.0.0.1', chat_port=5000, **kwargs):
-    if interface == 'textual':
-        chat_textual(provider, **kwargs)
-    elif interface == 'fasthtml':
-        chat_fasthtml(provider, chat_host=chat_host, chat_port=chat_port, **kwargs)
-    else:
-        print(f'Unknown interface: {interface}')
-        sys.exit(1)
+# main
+if __name__ == '__main__':
+    fire.Fire(chat_textual)
