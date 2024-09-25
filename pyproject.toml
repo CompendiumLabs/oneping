@@ -16,7 +16,7 @@ requires-python = '>=3.7'
 
 [project.optional-dependencies]
 native = ['openai', 'anthropic', 'fireworks-ai', 'xai-sdk']
-console = ['fire', 'textual']
+chat = ['fire', 'asyncstdlib', 'textual', 'fasthtml']
 
 [project.urls]
 Homepage = 'http://github.com/CompendiumLabs/oneping'

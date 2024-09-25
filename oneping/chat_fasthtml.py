@@ -1,3 +1,6 @@
+import os
+import asyncstdlib as a
+
 from fasthtml.components import Use
 from fasthtml.common import (
     serve, FastHTML, Script, Style, Title, Body, Div, Span, Hidden,
@@ -31,7 +34,7 @@ def ChatBox(role, content, prompt=False):
     title = Div(Span(role, cls='relative top-[-5px]'), cls='absolute top-[-10px] left-[10px] h-[20px] font-bold pl-1 pr-1 border border-gray-400 rounded bg-white small-caps cursor-default select-none')
     return Div(id=boxid, cls=f'chat-box relative border border-gray-400 rounded m-2 p-2 pt-3 bg-gray-100 {extra}')(title, content)
 
-def ChatMessage(id, message=''):
+def ChatMessage(id=None, message=''):
     hidden = Div(id=id, cls='message-data hidden')(message)
     display = Div(cls='message-display')
     return Div(cls='message')(hidden, display)
@@ -56,40 +59,40 @@ def ChatHistory(history):
 def ChatList(*children):
     return Div(id='chat', cls='flex flex-col')(*children)
 
-def ChatWindow(chat, route):
-    system = ChatBox('system', ChatSystem(chat.system))
+def ChatWindow(system=None, history=None, route='/generate'):
+    if history is None: history = []
+    system = [ChatBox('system', ChatSystem(system))] if system is not None else []
     prompt = ChatBox('user', ChatPrompt(route), prompt=True)
-    messages = ChatList(*ChatHistory(chat.history))
-    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3 overflow-y-scroll')(system, messages, prompt)
+    messages = ChatList(*ChatHistory(history))
+    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3 overflow-y-scroll')(*system, messages, prompt)
 
 ##
 ## websocket generator
 ##
 
-async def websocket(prompt, chat, send):
+def randhex():
+    return os.urandom(4).hex()
+
+async def websocket(prompt, stream, send):
     await send('START')
 
     # clear prompt input
     await send(ChatInput())
 
     # create user message
-    msg_user = f'message-{len(chat.history)}-user'
-    box_user = ChatBox('user', ChatMessage(msg_user, message=prompt))
+    box_user = ChatBox('user', ChatMessage(message=prompt))
     await send(Div(box_user, hx_swap_oob='beforeend', id='chat'))
 
     # start assistant message
-    msg_asst = f'message-{len(chat.history)+1}-asst'
-    box_asst = ChatBox('assistant', ChatMessage(msg_asst))
+    msg_asst = f'message-{randhex()}'
+    box_asst = ChatBox('assistant', ChatMessage(id=msg_asst, message='...'))
     await send(Div(box_asst, hx_swap_oob='beforeend', id='chat'))
 
     # stream in assistant response
-    await send(Span('...', hx_swap_oob='beforeend', id=msg_asst))
-    swap_op = 'innerHTML'
-    async for chunk in chat.stream(prompt):
+    async for i, chunk in a.enumerate(stream):
         sprint(chunk)
-        span = Span(chunk, hx_swap_oob=swap_op, id=msg_asst)
-        await send(span)
-        swap_op = 'beforeend'
+        swap_op = 'innerHTML' if i == 0 else 'beforeend'
+        await send(Span(chunk, hx_swap_oob=swap_op, id=msg_asst))
 
     await send('DONE')
 
@@ -178,7 +181,8 @@ def FastHTMLChat(chat):
     @app.route('/')
     def index():
         title = Title('Oneping Chat')
-        wind = ChatWindow(chat, '/generate')
+        system, history = chat.system, chat.history
+        wind = ChatWindow(system=system, history=history)
         body = Body(cls='h-full w-full')(wind)
         return (title, style, script), body
 
@@ -186,7 +190,8 @@ def FastHTMLChat(chat):
     @app.ws('/generate')
     async def generate(prompt: str, send):
         print(f'GENERATE: {prompt}')
-        await websocket(prompt, chat, send)
+        stream = chat.stream(prompt)
+        await websocket(prompt, stream, send)
         print('\nDONE')
 
     # return app
