@@ -4,16 +4,13 @@
 
 ![One ping only, please.](oneping.png)
 
-This is a simple wrapper library for querying LLMs via URL or native package. Currently the following providers are supported:
+This is a simple wrapper library for querying LLMs via URL or native package. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, `x.ai` (native only), and `local` (local models).
 
-- OpenAI
-- Anthropic
-- Fireworks
-- x.ai (native only)
-
-In addition, you can target local models at `localhost` that use an OpenAI-compatible API such as `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.run_llama_server`).
+Requesting a `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.run_llama_server`).
 
 The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, `fireworks-ai`, and `xai-sdk`.
+
+There is also a `Chat` interface that automatically tracks message history. Kind of departing from the "one ping" notion, but oh well. This accepts a `provider` and `system` argument. Other parameters are passed by calling it (an alias for `chat`) or to `stream`.
 
 ## Installation
 
@@ -21,7 +18,7 @@ The various native libraries are soft dependencies and the library can still par
 pip install oneping
 ```
 
-## Usage
+## API Usage
 
 Basic usage with Anthropic through the URL interface:
 ```python
@@ -54,4 +51,16 @@ history = oneping.get_llm_response(prompt1, provider='local', history=history)
 history = oneping.get_llm_response(prompt2, provider='local', history=history)
 ```
 
-For streaming, either pass `stream=True` or use the `oneping.stream_llm_response` helper function.
+For streaming, use the `async` function `stream_llm_response`.
+
+## Chat Interface
+
+The `Chat` interface is a simple wrapper for a conversation history. It can be used to chat with an LLM provider or to simply maintain a conversation history for your bot.
+
+```python
+chat = oneping.Chat(provider='anthropic', system=system)
+response1 = chat(prompt)
+response2 = chat(prompt)
+```
+
+There is also a `textual` powered CLI interface and a `fasthtml` powered web interface. You can call these with: `python -m oneping console` or `python -m oneping web`.
