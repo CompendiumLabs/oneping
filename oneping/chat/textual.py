@@ -9,7 +9,7 @@ from rich.style import Style
 from rich.text import Text
 from rich.panel import Panel
 
-from .default import cumcat
+from ..default import cumcat
 
 ##
 ## globals

@@ -1,8 +1,8 @@
 # chat interface to curl
 # https://textual.textualize.io/blog/2024/09/15/anatomy-of-a-textual-user-interface/
 
-from .default import SYSTEM, syncify
-from .curl import LLM_PROVIDERS, get_llm_response, async_llm_response, compose_history
+from ..default import SYSTEM, syncify
+from ..curl import LLM_PROVIDERS, get_llm_response, async_llm_response, compose_history
 
 # chat interface
 class Chat:
@@ -50,7 +50,7 @@ class Chat:
 
 # textual powered chat interface
 def chat_textual(provider='local', **kwargs):
-    from .chat_textual import TextualChat
+    from .textual import TextualChat
     chat = Chat(provider=provider, **kwargs)
     app = TextualChat(chat)
     app.run()
@@ -59,7 +59,7 @@ def chat_textual(provider='local', **kwargs):
 def chat_fasthtml(provider='local', chat_host='127.0.0.1', chat_port=5000, reload=False, **kwargs):
     import uvicorn
     from fasthtml.common import serve
-    from .chat_fasthtml import FastHTMLChat
+    from .fasthtml import FastHTMLChat
 
     # make application
     chat = Chat(provider=provider, **kwargs)
@@ -69,7 +69,3 @@ def chat_fasthtml(provider='local', chat_host='127.0.0.1', chat_port=5000, reloa
     config = uvicorn.Config(app, host=chat_host, port=chat_port, reload=reload)
     server = uvicorn.Server(config)
     server.run()
-
-# main
-if __name__ == '__main__':
-    fire.Fire(chat_textual)

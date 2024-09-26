@@ -20,3 +20,6 @@ chat = ['fire', 'asyncstdlib', 'textual', 'fasthtml']
 
 [project.urls]
 Homepage = 'http://github.com/CompendiumLabs/oneping'
+
+[tool.setuptools]
+packages = ['oneping', 'oneping.native', 'oneping.chat']

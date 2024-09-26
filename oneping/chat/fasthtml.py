@@ -7,7 +7,7 @@ from fasthtml.common import (
     Form, Button, Input, Textarea, Svg
 )
 
-from .default import sprint
+from ..default import sprint
 
 ##
 ## global
