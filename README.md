@@ -20,13 +20,13 @@ For standard usage, install with:
 pip install oneping
 ```
 
-To include the native LLM providers, install with:
+To include the native provider dependencies, install with:
 
 ```bash
 pip install oneping[native]
 ```
 
-To include the chat and web interfaces, install with:
+To include the chat and web interface dependencies, install with:
 
 ```bash
 pip install oneping[chat]
@@ -94,8 +94,8 @@ The `Chat` interface is a simple wrapper for a conversation history. It can be u
 
 ```python
 chat = oneping.Chat(provider='anthropic', system=system)
-response1 = chat(prompt)
-response2 = chat(prompt)
+response1 = chat(prompt1)
+response2 = chat(prompt2)
 ```
 
 There is also a `textual` powered CLI interface and a `fasthtml` powered web interface. You can call these with: `python -m oneping console` or `python -m oneping web`.
