@@ -45,13 +45,13 @@ The `reply` function accepts a number of arguments including:
 - `provider` = `local`: The provider to use: `openai`, `anthropic`, `fireworks`, or `local`
 - `system` = `None`: The system prompt to use (not required, but recommended)
 - `prefill` = `None`: Start "assistant" response with a string (Anthropic doesn't like newlines in this)
+- `model` = `None`: Indicate the desired model for the provider
+- `max_tokens` = `1024`: The maximum number of tokens to return
 - `history` = `None`: List of prior messages or `True` to request full history as return value
+- `native` = `False`: Use the native provider libraries
 - `url` = `None`: Override the default URL for the provider
 - `port` = `8000`: Which port to use for local or custom provider
 - `api_key` = `None`: The API key to use for non-local providers
-- `model` = `None`: Indicate the desired model for the provider
-- `max_tokens` = `1024`: The maximum number of tokens to return
-- `stream` = `False`: Whether to stream the response (returns a generator)
 
 For example, to use the OpenAI API with a custom `system` prompt:
 ```python
@@ -69,7 +69,7 @@ For streaming, use the function `stream` and for `async` streaming, use `stream_
 
 ## Command Line
 
-You can call the `oneping` module directly and access command from the command line:
+You can call the `oneping` module directly and use the following subcommands:
 
 - `reply`: get a single response from the LLM
 - `stream`: stream a response from the LLM
