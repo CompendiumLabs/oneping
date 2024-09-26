@@ -1,3 +1,6 @@
+# textual chat interface
+# https://textual.textualize.io/blog/2024/09/15/anatomy-of-a-textual-user-interface/
+
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widget import Widget
@@ -9,7 +12,7 @@ from rich.style import Style
 from rich.text import Text
 from rich.panel import Panel
 
-from ..default import cumcat
+from ..utils import cumcat
 
 ##
 ## globals

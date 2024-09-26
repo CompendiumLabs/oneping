@@ -4,9 +4,9 @@
 
 ![One ping only, please.](demo/oneping.png)
 
-This is a simple wrapper library for querying LLMs via URL or native package. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, and `local` (local models).
+This is a library for querying LLM providers such as OpenAI or Anthropic, as well as local models. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, and `local` (local models).
 
-Requesting a `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.run_llama_server`).
+Requesting a `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.run`).
 
 The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, and `fireworks-ai`.
 
@@ -32,14 +32,14 @@ To include the chat and web interface dependencies, install with:
 pip install oneping[chat]
 ```
 
-## API Usage
+## Library Usage
 
 Basic usage with Anthropic through the URL interface:
 ```python
-response = oneping.get_llm_response(prompt, provider='anthropic')
+response = oneping.reply(prompt, provider='anthropic')
 ```
 
-The `get_llm_response` function accepts a number of arguments including:
+The `reply` function accepts a number of arguments including:
 
 - `prompt` (required): The prompt to send to the LLM (required)
 - `provider` = `local`: The provider to use: `openai`, `anthropic`, `fireworks`, or `local`
@@ -55,19 +55,19 @@ The `get_llm_response` function accepts a number of arguments including:
 
 For example, to use the OpenAI API with a custom `system` prompt:
 ```python
-response = oneping.get_llm_response(prompt, provider='openai', system=system)
+response = oneping.reply(prompt, provider='openai', system=system)
 ```
 
 To conduct a full conversation with a local LLM:
 ```python
 history = True
-history = oneping.get_llm_response(prompt1, provider='local', history=history)
-history = oneping.get_llm_response(prompt2, provider='local', history=history)
+history = oneping.reply(prompt1, provider='local', history=history)
+history = oneping.reply(prompt2, provider='local', history=history)
 ```
 
-For streaming, use the `async` function `stream_llm_response` and for `async` streaming, use `async_llm_response`. Both of these take the same arguments as `get_llm_response`.
+For streaming, use the function `stream` and for `async` streaming, use `stream_async`. Both of these take the same arguments as `reply`.
 
-## CLI Interface
+## Command Line
 
 You can call the `oneping` module directly and access command from the command line:
 
@@ -76,7 +76,7 @@ You can call the `oneping` module directly and access command from the command l
 - `console`: start a console (Textual) chat
 - `web`: start a web (FastHTML) chat
 
-These accept the arguments listed above for `get_llm_response` as command line arguments. For example:
+These accept the arguments listed above for `reply` as command line arguments. For example:
 
 ```bash
 python -m oneping stream "Does Jupiter have a solid core?" --provider anthropic
@@ -90,7 +90,7 @@ echo "Does Jupiter have a solid core?" | python -m oneping stream --provider ant
 
 ## Chat Interface
 
-The `Chat` interface is a simple wrapper for a conversation history. It can be used to chat with an LLM provider or to simply maintain a conversation history for your bot.
+The `Chat` interface is a simple wrapper for a conversation history. It can be used to chat with an LLM provider or to simply maintain a conversation history for your bot. If takes the usual `reply`, `stream`, and `stream_async` functions, and calling it directly will map to `reply`.
 
 ```python
 chat = oneping.Chat(provider='anthropic', system=system)
@@ -98,7 +98,7 @@ response1 = chat(prompt1)
 response2 = chat(prompt2)
 ```
 
-There is also a `textual` powered CLI interface and a `fasthtml` powered web interface. You can call these with: `python -m oneping console` or `python -m oneping web`.
+There is also a `textual` powered console interface and a `fasthtml` powered web interface. You can call these with: `python -m oneping console` or `python -m oneping web`.
 
 <p align="center">
 <img src="demo/textual.png" alt="Textual Chat" width="49%">

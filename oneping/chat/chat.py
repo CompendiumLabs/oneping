@@ -1,26 +1,26 @@
-# chat interface to curl
-# https://textual.textualize.io/blog/2024/09/15/anatomy-of-a-textual-user-interface/
+# chat interface
 
-from ..default import SYSTEM, syncify
-from ..curl import LLM_PROVIDERS, get_llm_response, async_llm_response, compose_history
+from ..utils import syncify
+from ..providers import DEFAULT_SYSTEM
+from ..curl import reply, stream_async
 
 # chat interface
 class Chat:
     def __init__(self, provider='local', system=None, **kwargs):
         self.provider = provider
-        self.system = SYSTEM if system is None else system
+        self.system = DEFAULT_SYSTEM if system is None else system
         self.kwargs = kwargs
         self.clear()
 
     def __call__(self, prompt, **kwargs):
-        return self.chat(prompt, **kwargs)
+        return self.reply(prompt, **kwargs)
 
     def clear(self):
         self.history = []
 
-    def chat(self, prompt, **kwargs):
+    def reply(self, prompt, **kwargs):
         # get full history and text
-        self.history, text = get_llm_response(
+        self.history, text = reply(
             prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
         )
 
@@ -29,7 +29,7 @@ class Chat:
 
     async def stream_async(self, prompt, **kwargs):
         # get input history (plus prefill) and stream
-        replies = async_llm_response(
+        replies = stream_async(
             prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
         )
 

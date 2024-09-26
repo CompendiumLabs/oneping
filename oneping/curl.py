@@ -5,88 +5,11 @@ import json
 import requests
 import aiohttp
 
-from .default import (
-    SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL, FIREWORKS_MODEL, GROQ_MODEL,
-    syncify, payload_openai, payload_anthropic, response_openai, response_anthropic,
-    stream_openai, stream_anthropic
-)
+from .providers import get_provider
+from .utils import syncify
 
 ##
-## authorization headers
-##
-
-def authorize_openai(api_key):
-    return {
-        'Authorization': f'Bearer {api_key}',
-    }
-
-def authorize_anthropic(api_key):
-    return {
-        'x-api-key': api_key,
-    }
-
-##
-## known llm providers
-##
-
-# presets for known llm providers
-LLM_PROVIDERS = {
-    'local': {
-        'url': 'http://localhost:{port}/v1/chat/completions',
-        'payload': payload_openai,
-        'response': response_openai,
-        'stream': stream_openai,
-    },
-    'anthropic': {
-        'url': 'https://api.anthropic.com/v1/messages',
-        'payload': payload_anthropic,
-        'authorize': authorize_anthropic,
-        'response': response_anthropic,
-        'stream': stream_anthropic,
-        'api_key_env': 'ANTHROPIC_API_KEY',
-        'model': ANTHROPIC_MODEL,
-        'headers': {
-            'anthropic-version': '2023-06-01',
-            'anthropic-beta': 'prompt-caching-2024-07-31',
-        },
-    },
-    'openai': {
-        'url': 'https://api.openai.com/v1/chat/completions',
-        'payload': payload_openai,
-        'authorize': authorize_openai,
-        'response': response_openai,
-        'stream': stream_openai,
-        'max_tokens_name': 'max_completion_tokens',
-        'api_key_env': 'OPENAI_API_KEY', 
-        'model': OPENAI_MODEL,
-    },
-    'fireworks': {
-        'url': 'https://api.fireworks.ai/inference/v1/chat/completions',
-        'payload': payload_openai,
-        'authorize': authorize_openai,
-        'response': response_openai,
-        'stream': stream_openai,
-        'api_key_env': 'FIREWORKS_API_KEY',
-        'model': FIREWORKS_MODEL,
-    },
-    'groq': {
-        'url': 'https://api.groq.com/openai/v1/chat/completions',
-        'payload': payload_openai,
-        'authorize': authorize_openai,
-        'response': response_openai,
-        'stream': stream_openai,
-        'api_key_env': 'GROQ_API_KEY',
-        'model': GROQ_MODEL,
-    },
-}
-
-def get_provider(provider):
-    if type(provider) is str:
-        return LLM_PROVIDERS[provider]
-    return provider
-
-##
-## requests
+## payloads
 ##
 
 def strip_system(messages):
@@ -152,20 +75,10 @@ def prepare_request(
     return url, headers, payload
 
 ##
-## sync requests
+## requests
 ##
 
-def parse_stream(stream):
-    for chunk in stream:
-        if len(chunk) == 0:
-            continue
-        elif chunk.startswith(b'data: '):
-            text = chunk[6:]
-            if text == b'[DONE]':
-                break
-            yield text
-
-def get_llm_response(prompt, provider='local', history=None, **kwargs):
+def reply(prompt, provider='local', history=None, **kwargs):
     # get provider
     prov = get_provider(provider)
 
@@ -175,11 +88,11 @@ def get_llm_response(prompt, provider='local', history=None, **kwargs):
     # request response and return
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
-    reply = response.json()
+    data = response.json()
 
     # extract text
     extractor = prov['response']
-    text = extractor(reply)
+    text = extractor(data)
 
     # update history
     if history is not None:
@@ -190,12 +103,12 @@ def get_llm_response(prompt, provider='local', history=None, **kwargs):
     return text
 
 ##
-## async requests
+## stream requests
 ##
 
-async def iter_lines_buffered(stream):
+async def iter_lines_buffered(inputs):
     buffer = b''
-    async for chunk in stream:
+    async for chunk in inputs:
         buffer += chunk
         lines = buffer.split(b'\n')
         buffer = lines.pop()
@@ -205,8 +118,8 @@ async def iter_lines_buffered(stream):
     if len(buffer) > 0:
         yield buffer
 
-async def parse_stream_async(stream):
-    async for chunk in stream:
+async def parse_stream_async(inputs):
+    async for chunk in inputs:
         if len(chunk) == 0:
             continue
         elif chunk.startswith(b'data: '):
@@ -215,12 +128,7 @@ async def parse_stream_async(stream):
                 break
             yield text
 
-async def extract_stream_async(stream, extractor):
-    async for js in stream:
-        data = json.loads(js)
-        yield extractor(data)
-
-async def async_llm_response(prompt, provider='local', history=None, prefill=None, **kwargs):
+async def stream_async(prompt, provider='local', history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
 
@@ -239,8 +147,8 @@ async def async_llm_response(prompt, provider='local', history=None, prefill=Non
 
             # extract stream contents
             chunks = response.content.iter_chunked(1024)
-            stream = iter_lines_buffered(chunks)
-            parsed = parse_stream_async(stream)
+            lines = iter_lines_buffered(chunks)
+            parsed = parse_stream_async(lines)
 
             # yield prefill for consistency
             if prefill is not None:
@@ -252,6 +160,6 @@ async def async_llm_response(prompt, provider='local', history=None, prefill=Non
                 data = json.loads(text)
                 yield extractor(data)
 
-def stream_llm_response(prompt, **kwargs):
-    response = async_llm_response(prompt, **kwargs)
+def stream(prompt, **kwargs):
+    response = stream_async(prompt, **kwargs)
     return syncify(response)

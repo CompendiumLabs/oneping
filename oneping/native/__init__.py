@@ -74,3 +74,49 @@ except ImportError:
     get_groq_response = dummy_groq
     stream_groq_response = dummy_groq
     async_groq_response = dummy_groq
+
+##
+## router
+##
+
+def reply(prompt, provider, **kwargs):
+    if provider == 'openai':
+        return get_openai_response(prompt, **kwargs)
+    elif provider == 'anthropic':
+        return get_anthropic_response(prompt, **kwargs)
+    elif provider == 'fireworks':
+        return get_fireworks_response(prompt, **kwargs)
+    elif provider == 'groq':
+        return get_groq_response(prompt, **kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} not found')
+
+def stream(prompt, provider, **kwargs):
+    if provider == 'openai':
+        return stream_openai_response(prompt, **kwargs)
+    elif provider == 'anthropic':
+        return stream_anthropic_response(prompt, **kwargs)
+    elif provider == 'fireworks':
+        return stream_fireworks_response(prompt, **kwargs)
+    elif provider == 'groq':
+        return stream_groq_response(prompt, **kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} not found')
+
+def stream_async(prompt, provider, **kwargs):
+    if provider == 'openai':
+        return async_openai_response(prompt, **kwargs)
+    elif provider == 'anthropic':
+        return async_anthropic_response(prompt, **kwargs)
+    elif provider == 'fireworks':
+        return async_fireworks_response(prompt, **kwargs)
+    elif provider == 'groq':
+        return async_groq_response(prompt, **kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} not found')

@@ -1,10 +1,31 @@
-from .server import run_llama_server
-from .curl import get_llm_response, stream_llm_response, async_llm_response
+from .curl import (
+    reply as reply_url,
+    stream as stream_url,
+    stream_async as stream_async_url,
+)
 from .native import (
-    get_anthropic_response, stream_anthropic_response, async_anthropic_response,
-    get_openai_response, stream_openai_response, async_openai_response,
-    get_fireworks_response, stream_fireworks_response, async_fireworks_response,
-    get_groq_response, stream_groq_response, async_groq_response,
+    reply as reply_native,
+    stream as stream_native,
+    stream_async as stream_async_native,
 )
 from .chat import Chat
-from .default import cumcat, sprint, streamer, syncify
+from .server import run as run_server
+from .utils import cumcat, sprint, streamer, streamer_async, syncify
+
+def reply(prompt, provider='local', native=False, **kwargs):
+    if native:
+        return reply_native(prompt, provider, **kwargs)
+    else:
+        return reply_url(prompt, provider=provider, **kwargs)
+
+def stream(prompt, provider='local', native=False, **kwargs):
+    if native:
+        return stream_native(prompt, provider, **kwargs)
+    else:
+        return stream_url(prompt, provider=provider, **kwargs)
+
+def stream_async(prompt, provider='local', native=False, **kwargs):
+    if native:
+        return stream_async_native(prompt, provider, **kwargs)
+    else:
+        return stream_async_url(prompt, provider=provider, **kwargs)

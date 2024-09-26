@@ -1,8 +1,8 @@
 import sys
 import fire
 
-from .default import streamer
-from .curl import get_llm_response, stream_llm_response
+from .utils import streamer
+from .curl import reply, stream
 from .chat import chat_textual, chat_fasthtml
 
 class ChatCLI:
@@ -18,13 +18,13 @@ class ChatCLI:
     def reply(self, prompt=None):
         if prompt is None:
             prompt = sys.stdin.read()
-        return get_llm_response(prompt, **self.kwargs)
+        return reply(prompt, **self.kwargs)
 
     def stream(self, prompt=None):
         if prompt is None:
             prompt = sys.stdin.read()
-        stream = stream_llm_response(prompt, **self.kwargs)
-        streamer(stream)
+        reply = stream(prompt, **self.kwargs)
+        streamer(reply)
         print()
 
     def console(self):

@@ -1,3 +1,5 @@
+# fasthtml chat interface
+
 import os
 import asyncstdlib as a
 
@@ -7,7 +9,7 @@ from fasthtml.common import (
     Form, Button, Input, Textarea, Svg
 )
 
-from ..default import sprint
+from ..utils import sprint
 
 ##
 ## global
