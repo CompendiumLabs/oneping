@@ -111,20 +111,21 @@ def stream_anthropic_native(chunk):
 ## known llm providers
 ##
 
+DEFAULT_PROVIDER = {
+    'authorize': authorize_openai,
+    'payload': payload_openai,
+    'response': response_openai,
+    'stream': stream_openai,
+}
+
 # presets for known llm providers
 LLM_PROVIDERS = {
     'local': {
         'url': 'http://localhost:{port}/v1/chat/completions',
-        'payload': payload_openai,
-        'response': response_openai,
-        'stream': stream_openai,
+        'authorize': None,
     },
     'openai': {
         'url': 'https://api.openai.com/v1/chat/completions',
-        'payload': payload_openai,
-        'authorize': authorize_openai,
-        'response': response_openai,
-        'stream': stream_openai,
         'max_tokens_name': 'max_completion_tokens',
         'api_key_env': 'OPENAI_API_KEY',
         'model': OPENAI_MODEL,
@@ -144,19 +145,11 @@ LLM_PROVIDERS = {
     },
     'fireworks': {
         'url': 'https://api.fireworks.ai/inference/v1/chat/completions',
-        'payload': payload_openai,
-        'authorize': authorize_openai,
-        'response': response_openai,
-        'stream': stream_openai,
         'api_key_env': 'FIREWORKS_API_KEY',
         'model': FIREWORKS_MODEL,
     },
     'groq': {
         'url': 'https://api.groq.com/openai/v1/chat/completions',
-        'payload': payload_openai,
-        'authorize': authorize_openai,
-        'response': response_openai,
-        'stream': stream_openai,
         'api_key_env': 'GROQ_API_KEY',
         'model': GROQ_MODEL,
     },
@@ -164,5 +157,5 @@ LLM_PROVIDERS = {
 
 def get_provider(provider):
     if type(provider) is str:
-        return LLM_PROVIDERS[provider]
-    return provider
+        provider = LLM_PROVIDERS[provider]
+    return {**DEFAULT_PROVIDER, **provider}
