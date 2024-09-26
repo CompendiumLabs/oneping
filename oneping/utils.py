@@ -22,18 +22,3 @@ async def cumcat(stream):
     async for chunk in stream:
         reply += chunk
         yield reply
-
-def syncify(async_gen):
-    # get or create event loop
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-    # run until stopped
-    try:
-        while True:
-            yield loop.run_until_complete(async_gen.__anext__())
-    except StopAsyncIteration:
-        pass

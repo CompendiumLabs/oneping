@@ -1,8 +1,7 @@
 # chat interface
 
-from ..utils import syncify
 from ..providers import DEFAULT_SYSTEM
-from ..interface import reply, stream_async
+from ..interface import reply, stream, stream_async
 
 # chat interface
 class Chat:
@@ -48,7 +47,23 @@ class Chat:
         ]
 
     def stream(self, prompt, **kwargs):
-        return syncify(self.stream_async(prompt, **kwargs))
+        # get input history (plus prefill) and stream
+        replies = stream(
+            prompt, provider=self.provider, system=self.system, history=self.history,
+            **self.kwargs, **kwargs
+        )
+
+        # yield text stream
+        reply = ''
+        for chunk in replies:
+            yield chunk
+            reply += chunk
+
+        # update final history (reply includes prefill)
+        self.history += [
+            {'role': 'user'     , 'content': prompt},
+            {'role': 'assistant', 'content': reply },
+        ]
 
 # textual powered chat interface
 def chat_textual(provider='local', **kwargs):

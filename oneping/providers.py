@@ -9,6 +9,7 @@
 ##
 
 DEFAULT_SYSTEM = 'You are a helpful and knowledgeable AI assistant. Answer the queries provided to the best of your ability.'
+DEFAULT_MAX_TOKENS = 1024
 
 ##
 ## models

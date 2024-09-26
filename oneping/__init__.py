@@ -1,4 +1,4 @@
-from .utils import cumcat, sprint, streamer, streamer_async, syncify
+from .utils import cumcat, sprint, streamer, streamer_async
 from .curl import (
     reply as reply_url,
     stream as stream_url,

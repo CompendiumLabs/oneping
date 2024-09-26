@@ -2,7 +2,6 @@
 
 import openai
 
-from ..utils import syncify
 from ..providers import (
     DEFAULT_SYSTEM, OPENAI_MODEL, payload_openai,
     response_openai_native, stream_openai_native
@@ -21,6 +20,9 @@ async def async_llm_response(prompt, api_key=None, model=OPENAI_MODEL, system=DE
     async for chunk in response:
         yield stream_openai_native(chunk)
 
-def stream_llm_response(prompt, **kwargs):
-    response = async_llm_response(prompt, **kwargs)
-    return syncify(response)
+def stream_llm_response(prompt, api_key=None, model=OPENAI_MODEL, system=DEFAULT_SYSTEM, **kwargs):
+    client = openai.OpenAI(api_key=api_key)
+    payload = payload_openai(prompt, system=system)
+    response = client.chat.completions.create(model=model, stream=True, **payload, **kwargs)
+    for chunk in response:
+        yield stream_openai_native(chunk)

@@ -6,10 +6,9 @@ import requests
 import aiohttp
 
 from .providers import get_provider
-from .utils import syncify
 
 ##
-## payloads
+## history
 ##
 
 def strip_system(messages):
@@ -33,6 +32,10 @@ def compose_history(history, content):
 
     # usual case
     return history + [{'role': 'assistant', 'content': content}]
+
+##
+## payloads
+##
 
 def prepare_request(
     prompt, provider='local', system=None, prefill=None, history=None, url=None,
@@ -81,6 +84,7 @@ def prepare_request(
 def reply(prompt, provider='local', history=None, **kwargs):
     # get provider
     prov = get_provider(provider)
+    extractor = prov['response']
 
     # prepare request
     url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
@@ -88,10 +92,9 @@ def reply(prompt, provider='local', history=None, **kwargs):
     # request response and return
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
-    data = response.json()
 
     # extract text
-    extractor = prov['response']
+    data = response.json()
     text = extractor(data)
 
     # update history
@@ -106,6 +109,12 @@ def reply(prompt, provider='local', history=None, **kwargs):
 ## stream requests
 ##
 
+def parse_stream_data(chunk):
+    if chunk.startswith(b'data: '):
+        text = chunk[6:]
+        if text != b'[DONE]' and len(text) > 0:
+            return text
+
 async def iter_lines_buffered(inputs):
     buffer = b''
     async for chunk in inputs:
@@ -118,19 +127,37 @@ async def iter_lines_buffered(inputs):
     if len(buffer) > 0:
         yield buffer
 
-async def parse_stream_async(inputs):
-    async for chunk in inputs:
-        if len(chunk) == 0:
-            continue
-        elif chunk.startswith(b'data: '):
-            text = chunk[6:]
-            if text == b'[DONE]':
-                break
-            yield text
+def stream(prompt, provider='local', history=None, prefill=None, **kwargs):
+    # get provider
+    prov = get_provider(provider)
+    extractor = prov['stream']
+
+    # prepare request
+    url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
+
+    # augment headers/payload
+    headers['Accept'] = 'text/event-stream'
+    payload['stream'] = True
+
+    # make the request
+    with requests.post(url, headers=headers, data=json.dumps(payload), stream=True) as response:
+        # check for errors
+        response.raise_for_status()
+
+        # yield prefill for consistency
+        if prefill is not None:
+            yield prefill
+
+        # extract stream contents
+        for line in response.iter_lines():
+            if (data := parse_stream_data(line)) is not None:
+                parsed = json.loads(data)
+                yield extractor(parsed)
 
 async def stream_async(prompt, provider='local', history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
+    extractor = prov['stream']
 
     # prepare request
     url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
@@ -145,21 +172,16 @@ async def stream_async(prompt, provider='local', history=None, prefill=None, **k
             # check for errors
             response.raise_for_status()
 
-            # extract stream contents
-            chunks = response.content.iter_chunked(1024)
-            lines = iter_lines_buffered(chunks)
-            parsed = parse_stream_async(lines)
-
             # yield prefill for consistency
             if prefill is not None:
                 yield prefill
 
             # extract stream contents
-            extractor = prov['stream']
-            async for text in parsed:
-                data = json.loads(text)
-                yield extractor(data)
+            chunks = response.content.iter_any()
+            lines = iter_lines_buffered(chunks)
 
-def stream(prompt, **kwargs):
-    response = stream_async(prompt, **kwargs)
-    return syncify(response)
+            # extract stream contents
+            async for line in lines:
+                if (data := parse_stream_data(line)) is not None:
+                    parsed = json.loads(data)
+                    yield extractor(parsed)

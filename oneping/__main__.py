@@ -2,7 +2,7 @@ import sys
 import fire
 
 from .utils import streamer
-from .curl import reply, stream
+from .interface import reply, stream
 from .chat import chat_textual, chat_fasthtml
 
 class ChatCLI:
