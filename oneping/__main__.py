@@ -7,12 +7,12 @@ from .chat import chat_textual, chat_fasthtml
 
 class ChatCLI:
     def __init__(
-        self, provider='local', system=None, url=None, port=8000, api_key=None, model=None,
-        max_tokens=1024, **kwargs
+        self, provider='local', native=False, system=None, url=None, port=8000,
+        api_key=None, model=None, max_tokens=1024, **kwargs
     ):
         self.kwargs = dict(
-            provider=provider, system=system, url=url, port=port, api_key=api_key, model=model,
-            max_tokens=max_tokens, **kwargs
+            provider=provider, native=native, system=system, url=url, port=port,
+            api_key=api_key, model=model, max_tokens=max_tokens, **kwargs
         )
 
     def reply(self, prompt=None):

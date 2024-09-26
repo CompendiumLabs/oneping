@@ -2,7 +2,7 @@
 
 from ..utils import syncify
 from ..providers import DEFAULT_SYSTEM
-from ..curl import reply, stream_async
+from ..interface import reply, stream_async
 
 # chat interface
 class Chat:
@@ -21,7 +21,8 @@ class Chat:
     def reply(self, prompt, **kwargs):
         # get full history and text
         self.history, text = reply(
-            prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
+            prompt, provider=self.provider, system=self.system, history=self.history,
+            **self.kwargs, **kwargs
         )
 
         # return text
@@ -30,7 +31,8 @@ class Chat:
     async def stream_async(self, prompt, **kwargs):
         # get input history (plus prefill) and stream
         replies = stream_async(
-            prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
+            prompt, provider=self.provider, system=self.system, history=self.history,
+            **self.kwargs, **kwargs
         )
 
         # yield text stream
