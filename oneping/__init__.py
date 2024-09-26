@@ -4,6 +4,7 @@ from .native import (
     get_anthropic_response, stream_anthropic_response, async_anthropic_response,
     get_openai_response, stream_openai_response, async_openai_response,
     get_fireworks_response, stream_fireworks_response, async_fireworks_response,
+    get_groq_response, stream_groq_response, async_groq_response,
 )
 from .chat import Chat
 from .default import cumcat, sprint, streamer, syncify

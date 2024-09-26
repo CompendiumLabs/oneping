@@ -9,6 +9,7 @@ import asyncio
 ANTHROPIC_MODEL = 'claude-3-5-sonnet-20240620'
 OPENAI_MODEL = 'gpt-4o'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3-70b-instruct'
+GROQ_MODEL = 'llama3-70b-8192'
 
 ##
 ## system prompt

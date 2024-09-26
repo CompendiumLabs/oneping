@@ -25,6 +25,7 @@ except ImportError:
     dummy_anthropic = DummyFunction('anthropic')
     get_anthropic_response = dummy_anthropic
     stream_anthropic_response = dummy_anthropic
+    async_anthropic_response = dummy_anthropic
 
 ##
 ## openai
@@ -40,6 +41,7 @@ except ImportError:
     dummy_openai = DummyFunction('openai')
     get_openai_response = dummy_openai
     stream_openai_response = dummy_openai
+    async_openai_response = dummy_openai
 
 ##
 ## fireworks
@@ -55,3 +57,20 @@ except ImportError:
     dummy_fireworks = DummyFunction('fireworks-ai')
     get_fireworks_response = dummy_fireworks
     stream_fireworks_response = dummy_fireworks
+    async_fireworks_response = dummy_fireworks
+
+##
+## groq
+##
+
+try:
+    from .groq import (
+        get_llm_response as get_groq_response,
+        stream_llm_response as stream_groq_response,
+        async_llm_response as async_groq_response,
+    )
+except ImportError:
+    dummy_groq = DummyFunction('groq')
+    get_groq_response = dummy_groq
+    stream_groq_response = dummy_groq
+    async_groq_response = dummy_groq

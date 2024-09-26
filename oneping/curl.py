@@ -69,6 +69,15 @@ LLM_PROVIDERS = {
         'api_key_env': 'FIREWORKS_API_KEY',
         'model': 'accounts/fireworks/models/llama-v3-70b-instruct',
     },
+    'groq': {
+        'url': 'https://api.groq.com/openai/v1/chat/completions',
+        'payload': payload_openai,
+        'authorize': authorize_openai,
+        'response': response_openai,
+        'stream': stream_openai,
+        'api_key_env': 'GROQ_API_KEY',
+        'model': 'llama3-70b-8192',
+    },
 }
 
 def get_provider(provider):
