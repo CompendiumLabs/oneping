@@ -6,6 +6,7 @@
 
 ANTHROPIC_MODEL = 'claude-3-5-sonnet-20240620'
 OPENAI_MODEL = 'gpt-4o'
+FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3-70b-instruct'
 
 ##
 ## system prompt
@@ -64,6 +65,25 @@ def stream_openai(chunk):
 def stream_anthropic(chunk):
     if chunk['type'] == 'content_block_delta':
         return chunk['delta']['text']
+    else:
+        return ''
+
+def response_anthropic_native(reply):
+    return reply.content[0].text
+
+def stream_anthropic_native(chunk):
+    if chunk.type == 'content_block_delta':
+        return chunk.delta.text
+    else:
+        return ''
+
+def response_openai_native(reply):
+    return reply.choices[0].message.content
+
+def stream_openai_native(chunk):
+    text = chunk.choices[0].delta.content
+    if text is not None:
+        return text
     else:
         return ''
 

@@ -71,6 +71,11 @@ LLM_PROVIDERS = {
     },
 }
 
+def get_provider(provider):
+    if type(provider) is str:
+        return LLM_PROVIDERS[provider]
+    return provider
+
 ##
 ## requests
 ##
@@ -102,7 +107,7 @@ def prepare_request(
     port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
 ):
     # external provider
-    prov = LLM_PROVIDERS[provider]
+    prov = get_provider(provider)
 
     # get full url
     if url is None:
@@ -150,7 +155,7 @@ def parse_stream(stream):
 
 def get_llm_response(prompt, provider='local', history=None, **kwargs):
     # get provider
-    prov = LLM_PROVIDERS[provider]
+    prov = get_provider(provider)
 
     # prepare request
     url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
@@ -205,7 +210,7 @@ async def extract_stream_async(stream, extractor):
 
 async def stream_llm_response(prompt, provider='local', history=None, prefill=None, **kwargs):
     # get provider
-    prov = LLM_PROVIDERS[provider]
+    prov = get_provider(provider)
 
     # prepare request
     url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)

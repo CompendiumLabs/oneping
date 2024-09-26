@@ -60,7 +60,8 @@ def ChatList(*children):
     return Div(id='chat', cls='flex flex-col')(*children)
 
 def ChatWindow(system=None, history=None, route='/generate'):
-    if history is None: history = []
+    if history is None:
+        history = []
     system = [ChatBox('system', ChatSystem(system))] if system is not None else []
     prompt = ChatBox('user', ChatPrompt(route), prompt=True)
     messages = ChatList(*ChatHistory(history))
@@ -97,6 +98,77 @@ async def websocket(prompt, stream, send):
     await send('DONE')
 
 ##
+## chat javascript
+##
+
+chat_js = """
+function focusPrompt() {
+    const prompt = document.querySelector('#prompt');
+    prompt.focus();
+}
+function renderBox(box) {
+    const data = box.querySelector('.message-data').textContent;
+    const display = box.querySelector('.message-display');
+    display.innerHTML = marked.parse(data);
+}
+document.addEventListener('htmx:wsBeforeMessage', event => {
+    const message = event.detail.message;
+    const prompt_box = document.querySelector('#prompt-box');
+    if (message == 'START') {
+        prompt_box.classList.add('hidden');
+    } else if (message == 'DONE') {
+        prompt_box.classList.remove('hidden');
+    }
+});
+document.addEventListener('htmx:wsAfterMessage', event => {
+    const last = document.querySelector('#chat > .chat-box:last-child > .message');
+    if (last == null) return;
+    renderBox(last);
+    const chat = document.querySelector('#chat');
+    chat.scrollTop = chat.scrollHeight;
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const boxes = document.querySelectorAll('#chat > .chat-box > .message');
+    for (const box of boxes) {
+        renderBox(box);
+    }
+    focusPrompt();
+});
+"""
+
+chat_css = """
+.hidden {
+    display: none;
+}
+.message-display ol {
+    list-style-type: decimal;
+    padding-left: 40px;
+}
+
+.message-display ul {
+    list-style-type: disc;
+    padding-left: 40px;
+}
+
+.message-display pre {
+    background-color: white;
+    border: 1px solid #ddd;
+    line-height: 1.2;
+    padding: 10px;
+}
+
+.message-display code {
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.message-display *:not(:last-child) {
+    margin-bottom: 10px;
+}
+"""
+
+##
 ## fasthtml app
 ##
 
@@ -108,78 +180,11 @@ def FastHTMLChat(chat):
     ]
     app = FastHTML(hdrs=hdrs, ws_hdr=True)
 
-    # markdown rendering
-    script = Script("""
-    function focusPrompt() {
-        const prompt = document.querySelector('#prompt');
-        prompt.focus();
-    }
-    function renderBox(box) {
-        const data = box.querySelector('.message-data').textContent;
-        const display = box.querySelector('.message-display');
-        display.innerHTML = marked.parse(data);
-    }
-    document.addEventListener('htmx:wsBeforeMessage', event => {
-        const message = event.detail.message;
-        const prompt_box = document.querySelector('#prompt-box');
-        if (message == 'START') {
-            prompt_box.classList.add('hidden');
-        } else if (message == 'DONE') {
-            prompt_box.classList.remove('hidden');
-        }
-    });
-    document.addEventListener('htmx:wsAfterMessage', event => {
-        const last = document.querySelector('#chat > .chat-box:last-child > .message');
-        if (last == null) return;
-        renderBox(last);
-        const chat = document.querySelector('#chat');
-        chat.scrollTop = chat.scrollHeight;
-    });
-    document.addEventListener('DOMContentLoaded', () => {
-        const boxes = document.querySelectorAll('#chat > .chat-box > .message');
-        for (const box of boxes) {
-            renderBox(box);
-        }
-        focusPrompt();
-    });
-    """)
-
-    # markdown style
-    style = Style("""
-    .hidden {
-        display: none;
-    }
-    .message-display ol {
-        list-style-type: decimal;
-        padding-left: 40px;
-    }
-
-    .message-display ul {
-        list-style-type: disc;
-        padding-left: 40px;
-    }
-
-    .message-display pre {
-        background-color: white;
-        border: 1px solid #ddd;
-        line-height: 1.2;
-        padding: 10px;
-    }
-
-    .message-display code {
-        font-family: monospace;
-        font-size: 12px;
-        white-space: pre-wrap;
-    }
-
-    .message-display *:not(:last-child) {
-        margin-bottom: 10px;
-    }
-    """)
-
     # connect main
     @app.route('/')
     def index():
+        style = Style(chat_css)
+        script = Script(chat_js)
         title = Title('Oneping Chat')
         system, history = chat.system, chat.history
         wind = ChatWindow(system=system, history=history)

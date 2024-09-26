@@ -52,17 +52,3 @@ except ImportError:
     dummy_fireworks = DummyFunction('fireworks-ai')
     get_fireworks_response = dummy_fireworks
     stream_fireworks_response = dummy_fireworks
-
-##
-## xai
-##
-
-try:
-    from .providers.xai import (
-        get_llm_response as get_xai_response,
-        stream_llm_response as stream_xai_response,
-    )
-except ImportError:
-    dummy_xai = DummyFunction('xai-sdk')
-    get_xai_response = dummy_xai
-    stream_xai_response = dummy_xai
