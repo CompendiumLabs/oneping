@@ -65,5 +65,7 @@ response2 = chat(prompt)
 
 There is also a `textual` powered CLI interface and a `fasthtml` powered web interface. You can call these with: `python -m oneping console` or `python -m oneping web`.
 
+<p align="center">
 <img src="demo/textual.png" alt="Textual Chat" width="49%">
 <img src="demo/fasthtml.png" alt="FastHTML Chat" width="49%">
+</p>
