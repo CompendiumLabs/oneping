@@ -6,10 +6,9 @@ import requests
 import aiohttp
 
 from .default import (
-    SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL, syncify,
-    payload_openai, payload_anthropic,
-    response_openai, response_anthropic,
-    stream_openai, stream_anthropic,
+    SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL, FIREWORKS_MODEL, GROQ_MODEL,
+    syncify, payload_openai, payload_anthropic, response_openai, response_anthropic,
+    stream_openai, stream_anthropic
 )
 
 ##
@@ -57,6 +56,7 @@ LLM_PROVIDERS = {
         'authorize': authorize_openai,
         'response': response_openai,
         'stream': stream_openai,
+        'max_tokens_name': 'max_completion_tokens',
         'api_key_env': 'OPENAI_API_KEY', 
         'model': OPENAI_MODEL,
     },
@@ -67,7 +67,7 @@ LLM_PROVIDERS = {
         'response': response_openai,
         'stream': stream_openai,
         'api_key_env': 'FIREWORKS_API_KEY',
-        'model': 'accounts/fireworks/models/llama-v3-70b-instruct',
+        'model': FIREWORKS_MODEL,
     },
     'groq': {
         'url': 'https://api.groq.com/openai/v1/chat/completions',
@@ -76,7 +76,7 @@ LLM_PROVIDERS = {
         'response': response_openai,
         'stream': stream_openai,
         'api_key_env': 'GROQ_API_KEY',
-        'model': 'llama3-70b-8192',
+        'model': GROQ_MODEL,
     },
 }
 
@@ -118,6 +118,9 @@ def prepare_request(
     # external provider
     prov = get_provider(provider)
 
+    # get max_tokens name (might be max_completion_tokens for openai)
+    max_tokens_name = prov.get('max_tokens_name', 'max_tokens')
+
     # get full url
     if url is None:
         url = prov['url'].format(port=port)
@@ -143,7 +146,7 @@ def prepare_request(
 
     # base payload
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
-    payload = {**payload_model, **payload_message, 'max_tokens': max_tokens, **kwargs}
+    payload = {**payload_model, **payload_message, max_tokens_name: max_tokens, **kwargs}
 
     # return url, headers, payload
     return url, headers, payload
