@@ -6,7 +6,7 @@ import requests
 import aiohttp
 
 from .default import (
-    SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL,
+    SYSTEM, ANTHROPIC_MODEL, OPENAI_MODEL, syncify,
     payload_openai, payload_anthropic,
     response_openai, response_anthropic,
     stream_openai, stream_anthropic,
@@ -208,7 +208,7 @@ async def extract_stream_async(stream, extractor):
         data = json.loads(js)
         yield extractor(data)
 
-async def stream_llm_response(prompt, provider='local', history=None, prefill=None, **kwargs):
+async def async_llm_response(prompt, provider='local', history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
 
@@ -239,3 +239,7 @@ async def stream_llm_response(prompt, provider='local', history=None, prefill=No
             async for text in parsed:
                 data = json.loads(text)
                 yield extractor(data)
+
+def stream_llm_response(prompt, **kwargs):
+    response = async_llm_response(prompt, **kwargs)
+    return syncify(response)

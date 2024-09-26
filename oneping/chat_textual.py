@@ -146,7 +146,7 @@ class TextualChat(App):
         self.title = f'oneping: {self.chat.provider}'
 
     def compose(self):
-        yield ChatWindow(self.chat.stream, system=self.chat.system)
+        yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
         prompt = self.query_one('#prompt')

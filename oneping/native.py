@@ -19,6 +19,7 @@ try:
     from .providers.anthropic import (
         get_llm_response as get_anthropic_response,
         stream_llm_response as stream_anthropic_response,
+        async_llm_response as async_anthropic_response,
     )
 except ImportError:
     dummy_anthropic = DummyFunction('anthropic')
@@ -33,6 +34,7 @@ try:
     from .providers.openai import (
         get_llm_response as get_openai_response,
         stream_llm_response as stream_openai_response,
+        async_llm_response as async_openai_response,
     )
 except ImportError:
     dummy_openai = DummyFunction('openai')
@@ -47,6 +49,7 @@ try:
     from .providers.fireworks import (
         get_llm_response as get_fireworks_response,
         stream_llm_response as stream_fireworks_response,
+        async_llm_response as async_fireworks_response,
     )
 except ImportError:
     dummy_fireworks = DummyFunction('fireworks-ai')

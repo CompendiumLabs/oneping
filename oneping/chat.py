@@ -1,8 +1,8 @@
 # chat interface to curl
 # https://textual.textualize.io/blog/2024/09/15/anatomy-of-a-textual-user-interface/
 
-from .default import SYSTEM
-from .curl import LLM_PROVIDERS, get_llm_response, stream_llm_response, compose_history
+from .default import SYSTEM, syncify
+from .curl import LLM_PROVIDERS, get_llm_response, async_llm_response, compose_history
 
 # chat interface
 class Chat:
@@ -27,9 +27,9 @@ class Chat:
         # return text
         return text
 
-    async def stream(self, prompt, **kwargs):
+    async def stream_async(self, prompt, **kwargs):
         # get input history (plus prefill) and stream
-        replies = stream_llm_response(
+        replies = async_llm_response(
             prompt, provider=self.provider, history=self.history, system=self.system, **self.kwargs, **kwargs
         )
 
@@ -44,6 +44,9 @@ class Chat:
             {'role': 'user'     , 'content': prompt},
             {'role': 'assistant', 'content': reply },
         ]
+
+    def stream(self, prompt, **kwargs):
+        return syncify(self.stream_async(prompt, **kwargs))
 
 # textual powered chat interface
 def chat_textual(provider='local', **kwargs):

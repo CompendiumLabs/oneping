@@ -20,11 +20,11 @@ class ChatCLI:
             prompt = sys.stdin.read()
         return get_llm_response(prompt, **self.kwargs)
 
-    async def stream(self, prompt=None):
+    def stream(self, prompt=None):
         if prompt is None:
             prompt = sys.stdin.read()
         stream = stream_llm_response(prompt, **self.kwargs)
-        await streamer(stream)
+        streamer(stream)
         print()
 
     def console(self):

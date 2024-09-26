@@ -195,7 +195,7 @@ def FastHTMLChat(chat):
     @app.ws('/generate')
     async def generate(prompt: str, send):
         print(f'GENERATE: {prompt}')
-        stream = chat.stream(prompt)
+        stream = chat.stream_async(prompt)
         await websocket(prompt, stream, send)
         print('\nDONE')
 
