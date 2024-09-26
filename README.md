@@ -14,8 +14,22 @@ There is also a `Chat` interface that automatically tracks message history. Kind
 
 ## Installation
 
+For standard usage, install with:
+
 ```bash
 pip install oneping
+```
+
+To include the native LLM providers, install with:
+
+```bash
+pip install oneping[native]
+```
+
+To include the chat and web interfaces, install with:
+
+```bash
+pip install oneping[chat]
 ```
 
 ## API Usage
@@ -51,7 +65,28 @@ history = oneping.get_llm_response(prompt1, provider='local', history=history)
 history = oneping.get_llm_response(prompt2, provider='local', history=history)
 ```
 
-For streaming, use the `async` function `stream_llm_response`.
+For streaming, use the `async` function `stream_llm_response` and for `async` streaming, use `async_llm_response`. Both of these take the same arguments as `get_llm_response`.
+
+## CLI Interface
+
+You can call the `oneping` module directly and access command from the command line:
+
+- `reply`: get a single response from the LLM
+- `stream`: stream a response from the LLM
+- `console`: start a console (Textual) chat
+- `web`: start a web (FastHTML) chat
+
+These accept the arguments listed above for `get_llm_response` as command line arguments. For example:
+
+```bash
+python -m oneping stream "Does Jupiter have a solid core?" --provider anthropic
+```
+
+Or you can pipe in your query from `stdin`:
+
+```bash
+echo "Does Jupiter have a solid core?" | python -m oneping stream --provider anthropic
+```
 
 ## Chat Interface
 

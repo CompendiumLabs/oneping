@@ -11,11 +11,11 @@ classifiers = [
     'Programming Language :: Python :: 3',
 ]
 keywords = ['llm', 'chat']
-dependencies = []
+dependencies = ['aiohttp']
 requires-python = '>=3.7'
 
 [project.optional-dependencies]
-native = ['openai', 'anthropic', 'fireworks-ai', 'xai-sdk']
+native = ['openai', 'anthropic', 'fireworks-ai']
 chat = ['fire', 'asyncstdlib', 'textual', 'fasthtml']
 
 [project.urls]
