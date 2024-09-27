@@ -20,6 +20,8 @@ pip install oneping
 
 To install the native provider dependencies add `"[native]"` after `oneping` in the command above. The same goes for the chat interface dependencies with `"[chat]"`.
 
+The easiest way to handle authentication is to set an API key environment variable such as: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `FIREWORKS_API_KEY`, etc. You can also pass the `api_key` argument to any of the functions directly.
+
 ## Library Usage
 
 Basic usage with Anthropic through the URL interface:
