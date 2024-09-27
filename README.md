@@ -20,13 +20,13 @@ For standard usage, install with:
 pip install oneping
 ```
 
-To include the native provider dependencies, install with:
+To install the native provider dependencies:
 
 ```bash
 pip install oneping[native]
 ```
 
-To include the chat and web interface dependencies, install with:
+To install the chat and web interface dependencies:
 
 ```bash
 pip install oneping[chat]
@@ -69,7 +69,7 @@ For streaming, use the function `stream` and for `async` streaming, use `stream_
 
 ## Command Line
 
-You can call the `oneping` module directly and use the following subcommands:
+You can call `oneping` directly or as a module with `python -m oneping` and use the following subcommands:
 
 - `reply`: get a single response from the LLM
 - `stream`: stream a response from the LLM
@@ -80,14 +80,16 @@ You can call the `oneping` module directly and use the following subcommands:
 These accept the arguments listed above for `reply` as command line arguments. For example:
 
 ```bash
-python -m oneping stream "Does Jupiter have a solid core?" --provider anthropic
+oneping stream "Does Jupiter have a solid core?" --provider anthropic
 ```
 
 Or you can pipe in your query from `stdin`:
 
 ```bash
-echo "Does Jupiter have a solid core?" | python -m oneping stream --provider anthropic
+echo "Does Jupiter have a solid core?" | oneping stream --provider anthropic
 ```
+
+I've personally found it useful to set up aliases like `claude = oneping stream --provider anthropic`.
 
 ## Chat Interface
 
@@ -99,7 +101,7 @@ response1 = chat(prompt1)
 response2 = chat(prompt2)
 ```
 
-There is also a `textual` powered console interface and a `fasthtml` powered web interface. You can call these with: `python -m oneping console` or `python -m oneping web`.
+There is also a `textual` powered console interface and a `fasthtml` powered web interface. You can call these with: `oneping console` or `oneping web`.
 
 <p align="center">
 <img src="demo/textual.png" alt="Textual Chat" width="49%">
@@ -108,13 +110,13 @@ There is also a `textual` powered console interface and a `fasthtml` powered web
 
 ## Server
 
-The `server` module includes a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.start` or `python -m oneping.server start`).
+The `server` module includes a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.start` in Python or `oneping server` from the command line).
 
 ```bash
-python -m oneping.server start <path-to-gguf>
+oneping server <path-to-gguf>
 ```
 
-To run the server in embedding mode, either pass the `--embedding` flag.
+To run the server in embedding mode, pass the `--embedding` flag. You can also specify things like `--host` and `--port` or any options supported by `llama-cpp-python`.
 
 ## Embeddings
 
@@ -122,4 +124,10 @@ Embeddings queries are supported through the `embed` function. It accepts the re
 
 ```python
 vecs = oneping.embed(text, provider='openai')
+```
+
+and on the command line:
+
+```bash
+oneping embed "hello world" --provider openai
 ```
