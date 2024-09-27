@@ -4,13 +4,11 @@
 
 ![One ping only, please.](demo/oneping.png)
 
-This is a library for querying LLM providers such as OpenAI or Anthropic, as well as local models. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, and `local` (local models).
+This is a Python library for querying LLM providers such as OpenAI or Anthropic, as well as local models. The main goal is to create an abstraction layer that makes switching between them seamless. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, and `local` (local models).
 
-Requesting a `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (see below).
+Requesting the `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (see below). The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, and `fireworks-ai`.
 
-The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, and `fireworks-ai`.
-
-There is also a `Chat` interface that automatically tracks message history. Kind of departing from the "one ping" notion, but oh well. This accepts a `provider` and `system` argument. Other parameters are passed by calling it (an alias for `chat`) or to `stream`.
+There is also a `Chat` interface that automatically tracks the message history. Kind of departing from the "one ping" notion, but oh well. Additionally, there is a `textual` powered console interface and a `fasthtml` powered web interface.
 
 ## Installation
 
@@ -20,17 +18,7 @@ For standard usage, install with:
 pip install oneping
 ```
 
-To install the native provider dependencies:
-
-```bash
-pip install oneping[native]
-```
-
-To install the chat and web interface dependencies:
-
-```bash
-pip install oneping[chat]
-```
+To install the native provider dependencies add `"[native]"` after `oneping` in the command above. The same goes for the chat interface dependencies with `"[chat]"`.
 
 ## Library Usage
 
