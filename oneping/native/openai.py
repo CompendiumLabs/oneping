@@ -26,3 +26,8 @@ def stream_llm_response(prompt, api_key=None, model=OPENAI_MODEL, system=DEFAULT
     response = client.chat.completions.create(model=model, stream=True, **payload, **kwargs)
     for chunk in response:
         yield stream_openai_native(chunk)
+
+def get_embed_response(text, api_key=None, model=OPENAI_MODEL, **kwargs):
+    client = openai.OpenAI(api_key=api_key)
+    response = client.embeddings.create(model=model, input=text, **kwargs)
+    return response

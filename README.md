@@ -6,7 +6,7 @@
 
 This is a library for querying LLM providers such as OpenAI or Anthropic, as well as local models. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, and `local` (local models).
 
-Requesting a `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.run`).
+Requesting a `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. Also included is a simple function to start a `llama-cpp-python` server on the fly (see below).
 
 The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, and `fireworks-ai`.
 
@@ -104,3 +104,25 @@ There is also a `textual` powered console interface and a `fasthtml` powered web
 <img src="demo/textual.png" alt="Textual Chat" width="49%">
 <img src="demo/fasthtml.png" alt="FastHTML Chat" width="49%">
 </p>
+
+## Server
+
+The `server` module includes a simple function to start a `llama-cpp-python` server on the fly (`oneping.server.start` or `python -m oneping.server start`).
+
+```bash
+python -m oneping.server start <path-to-gguf>
+```
+
+To run the server in embedding mode, either pass `--embed` or use the `embed` subcommand.
+
+```bash
+python -m oneping.server embed <path-to-gguf>
+```
+
+## Embeddings
+
+Embeddings queries are supported through the `embed` function. It accepts the relevant arguments from the `reply` function.
+
+```python
+vecs = oneping.embed(text, provider='openai')
+```

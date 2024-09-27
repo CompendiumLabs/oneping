@@ -36,12 +36,14 @@ try:
         get_llm_response as get_openai_response,
         stream_llm_response as stream_openai_response,
         async_llm_response as async_openai_response,
+        get_embed_response as get_openai_embed_response,
     )
 except ImportError:
     dummy_openai = DummyFunction('openai')
     get_openai_response = dummy_openai
     stream_openai_response = dummy_openai
     async_openai_response = dummy_openai
+    get_openai_embed_response = dummy_openai
 
 ##
 ## fireworks
@@ -120,3 +122,9 @@ def stream_async(prompt, provider, **kwargs):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
+
+def embed(text, provider, **kwargs):
+    if provider == 'openai':
+        return get_openai_embed_response(text, **kwargs)
+    else:
+        raise Exception(f'Provider {provider} does not support embeddings')

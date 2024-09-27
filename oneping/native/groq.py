@@ -26,3 +26,9 @@ def stream_llm_response(prompt, api_key=None, model=GROQ_MODEL, system=DEFAULT_S
     response = client.chat.completions.create(model=model, stream=True, **payload, **kwargs)
     for chunk in response:
         yield stream_openai_native(chunk)
+
+def embed(text, api_key=None, model=GROQ_MODEL, system=DEFAULT_SYSTEM, **kwargs):
+    client = groq.Groq(api_key=api_key)
+    payload = payload_openai(prompt, system=system)
+    response = client.embeddings.create(model=model, **payload, **kwargs)
+    return response_openai_native(response)

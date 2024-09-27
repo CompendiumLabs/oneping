@@ -26,3 +26,9 @@ def stream_llm_response(prompt, api_key=None, model=FIREWORKS_MODEL, system=DEFA
     response = client.chat.completions.create(model=model, stream=True, **payload, **kwargs)
     for chunk in response:
         yield stream_openai_native(chunk)
+
+def embed(text, api_key=None, model=FIREWORKS_MODEL, system=DEFAULT_SYSTEM, **kwargs):
+    client = fireworks.client.Fireworks(api_key=api_key)
+    payload = payload_openai(prompt, system=system)
+    response = client.embeddings.create(model=model, **payload, **kwargs)
+    return response_openai_native(response)

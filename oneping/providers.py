@@ -107,6 +107,9 @@ def stream_anthropic_native(chunk):
     else:
         return ''
 
+def embed_openai(reply):
+    return reply['data'][0]['embedding']
+
 ##
 ## known llm providers
 ##
@@ -116,6 +119,7 @@ DEFAULT_PROVIDER = {
     'payload': payload_openai,
     'response': response_openai,
     'stream': stream_openai,
+    'embed': embed_openai,
 }
 
 # presets for known llm providers
@@ -159,3 +163,29 @@ def get_provider(provider):
     if type(provider) is str:
         provider = LLM_PROVIDERS[provider]
     return {**DEFAULT_PROVIDER, **provider}
+
+##
+## embedding providers
+##
+
+DEFAULT_EMBED = {
+    'authorize': authorize_openai,
+    'embed': embed_openai,
+}
+
+EMBED_PROVIDERS = {
+    'local': {
+        'url': 'http://localhost:{port}/v1/embeddings',
+        'authorize': None,
+    },
+    'openai': {
+        'url': 'https://api.openai.com/v1/embeddings',
+        'api_key_env': 'OPENAI_API_KEY',
+        'model': 'text-embedding-3-small',
+    },
+}
+
+def get_embed_provider(provider):
+    if type(provider) is str:
+        provider = EMBED_PROVIDERS[provider]
+    return {**DEFAULT_EMBED, **provider}

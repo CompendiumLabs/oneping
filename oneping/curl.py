@@ -5,7 +5,7 @@ import json
 import requests
 import aiohttp
 
-from .providers import get_provider
+from .providers import get_provider, get_embed_provider
 
 ##
 ## history
@@ -37,6 +37,25 @@ def compose_history(history, content):
 ## payloads
 ##
 
+def prepare_url(prov, url=None, port=8000):
+    if url is None:
+        url = prov['url'].format(port=port)
+    return url
+
+def prepare_auth(prov, api_key=None):
+    if (auth_func := prov.get('authorize')) is not None:
+        if api_key is None and (api_key := os.environ.get(key_env := prov['api_key_env'])) is None:
+            raise Exception('Cannot find API key in {key_env}')
+        headers_auth = auth_func(api_key)
+    else:
+        headers_auth = {}
+    return headers_auth
+
+def prepare_model(prov, model=None):
+    if model is None:
+        model = prov.get('model')
+    return {'model': model} if model is not None else {}
+
 def prepare_request(
     prompt, provider='local', system=None, prefill=None, history=None, url=None,
     port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
@@ -48,24 +67,16 @@ def prepare_request(
     max_tokens_name = prov.get('max_tokens_name', 'max_tokens')
 
     # get full url
-    if url is None:
-        url = prov['url'].format(port=port)
+    url = prepare_url(prov, url=url, port=port)
 
     # get authorization headers
-    if (auth_func := prov.get('authorize')) is not None:
-        if api_key is None and (api_key := os.environ.get(key_env := prov['api_key_env'])) is None:
-            raise Exception('Cannot find API key in {key_env}')
-        headers_auth = auth_func(api_key)
-    else:
-        headers_auth = {}
+    headers_auth = prepare_auth(prov, api_key=api_key)
 
     # get extra headers
     headers_extra = prov.get('headers', {})
 
     # get default model
-    if model is None:
-        model = prov.get('model')
-    payload_model = {'model': model} if model is not None else {}
+    payload_model = prepare_model(prov, model=model)
 
     # get message payload
     payload_message = prov['payload'](prompt=prompt, system=system, prefill=prefill, history=history)
@@ -185,3 +196,36 @@ async def stream_async(prompt, provider='local', history=None, prefill=None, **k
                 if (data := parse_stream_data(line)) is not None:
                     parsed = json.loads(data)
                     yield extractor(parsed)
+
+##
+## embeddings
+##
+
+def embed(text, provider='local', url=None, port=8000, api_key=None, model=None, **kwargs):
+    # get provider
+    prov = get_embed_provider(provider)
+    extractor = prov['embed']
+
+    # get full url
+    url = prepare_url(prov, url=url, port=port)
+
+    # get authorization headers
+    headers_auth = prepare_auth(prov, api_key=api_key)
+
+    # get default model
+    payload_model = prepare_model(prov, model=model)
+
+    # combine payload
+    headers = {'Content-Type': 'application/json', **headers_auth}
+    payload = {'input': text, **payload_model}
+
+    # make the request
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    response.raise_for_status()
+
+    # extract text
+    data = response.json()
+    vecs = extractor(data)
+
+    # return text
+    return vecs
