@@ -39,17 +39,17 @@ Basic usage with Anthropic through the URL interface:
 response = oneping.reply(prompt, provider='anthropic')
 ```
 
-The `reply` function accepts a number of arguments including:
+The `reply` function accepts a number of arguments including (some of these have per-provider defaults):
 
 - `prompt` (required): The prompt to send to the LLM (required)
 - `provider` = `local`: The provider to use: `openai`, `anthropic`, `fireworks`, or `local`
 - `system` = `None`: The system prompt to use (not required, but recommended)
 - `prefill` = `None`: Start "assistant" response with a string (Anthropic doesn't like newlines in this)
-- `model` = `None`: Indicate the desired model for the provider
+- `model` = `None`: Indicate the desired model for the provider (provider default)
 - `max_tokens` = `1024`: The maximum number of tokens to return
 - `history` = `None`: List of prior messages or `True` to request full history as return value
 - `native` = `False`: Use the native provider libraries
-- `url` = `None`: Override the default URL for the provider
+- `url` = `None`: Override the default URL for the provider (provider default)
 - `port` = `8000`: Which port to use for local or custom provider
 - `api_key` = `None`: The API key to use for non-local providers
 
@@ -73,6 +73,7 @@ You can call the `oneping` module directly and use the following subcommands:
 
 - `reply`: get a single response from the LLM
 - `stream`: stream a response from the LLM
+- `embed`: get embeddings from the LLM
 - `console`: start a console (Textual) chat
 - `web`: start a web (FastHTML) chat
 
@@ -113,15 +114,11 @@ The `server` module includes a simple function to start a `llama-cpp-python` ser
 python -m oneping.server start <path-to-gguf>
 ```
 
-To run the server in embedding mode, either pass `--embed` or use the `embed` subcommand.
-
-```bash
-python -m oneping.server embed <path-to-gguf>
-```
+To run the server in embedding mode, either pass the `--embedding` flag.
 
 ## Embeddings
 
-Embeddings queries are supported through the `embed` function. It accepts the relevant arguments from the `reply` function.
+Embeddings queries are supported through the `embed` function. It accepts the relevant arguments from the `reply` function. Right now only `openai` and `local` providers are supported.
 
 ```python
 vecs = oneping.embed(text, provider='openai')
