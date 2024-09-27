@@ -13,7 +13,4 @@ from .native import (
 )
 from .interface import reply, stream, stream_async, embed
 from .chat import Chat
-from .server import (
-    start as start_server,
-    embed as embed_server,
-)
+from .server import start as start_server

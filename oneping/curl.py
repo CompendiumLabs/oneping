@@ -5,7 +5,7 @@ import json
 import requests
 import aiohttp
 
-from .providers import get_provider, get_embed_provider
+from .providers import get_provider, get_embed_provider, DEFAULT_MAX_TOKENS
 
 ##
 ## history
@@ -37,7 +37,9 @@ def compose_history(history, content):
 ## payloads
 ##
 
-def prepare_url(prov, url=None, port=8000):
+def prepare_url(prov, url=None, port=None):
+    if port is None:
+        port = 8000
     if url is None:
         url = prov['url'].format(port=port)
     return url
@@ -58,7 +60,7 @@ def prepare_model(prov, model=None):
 
 def prepare_request(
     prompt, provider='local', system=None, prefill=None, history=None, url=None,
-    port=8000, api_key=None, model=None, max_tokens=1024, **kwargs
+    port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider
     prov = get_provider(provider)
@@ -201,7 +203,7 @@ async def stream_async(prompt, provider='local', history=None, prefill=None, **k
 ## embeddings
 ##
 
-def embed(text, provider='local', url=None, port=8000, api_key=None, model=None, **kwargs):
+def embed(text, provider='local', url=None, port=None, api_key=None, model=None, **kwargs):
     # get provider
     prov = get_embed_provider(provider)
     extractor = prov['embed']
