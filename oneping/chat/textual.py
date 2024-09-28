@@ -59,12 +59,13 @@ class ChatHistory(VerticalScroll):
     }
     """
 
-    def __init__(self, system, **kwargs):
+    def __init__(self, system=None, **kwargs):
         super().__init__(**kwargs)
         self.system = system
 
     def compose(self):
-        yield ChatMessage('system', self.system)
+        if self.system is not None:
+            yield ChatMessage('system', self.system)
 
 class BarePrompt(Input):
     DEFAULT_CSS = """
@@ -91,7 +92,7 @@ class ChatInput(Static):
         self.border_title = 'user'
 
     def compose(self):
-        yield BarePrompt(id='prompt', height=3, placeholder='Type a message...')
+        yield BarePrompt(height=3, placeholder='Type a message...')
 
 # textualize chat app
 class ChatWindow(Static):
@@ -101,13 +102,11 @@ class ChatWindow(Static):
         self.system = system
 
     def compose(self):
-        yield Header(id='header')
-        if self.system is not None:
-            yield ChatHistory(self.system, id='history')
-        yield ChatInput(id='input')
+        yield ChatHistory(system=self.system)
+        yield ChatInput()
 
     def on_key(self, event):
-        history = self.query_one('#history')
+        history = self.query_one('ChatHistory')
         if event.key == 'PageUp':
             history.scroll_up(animate=False)
         elif event.key == 'PageDown':
@@ -115,8 +114,8 @@ class ChatWindow(Static):
 
     @on(Input.Submitted)
     async def on_input(self, event):
-        prompt = self.query_one('#prompt')
-        history = self.query_one('#history')
+        prompt = self.query_one('BarePrompt')
+        history = self.query_one('ChatHistory')
 
         # ignore empty messages
         if len(message := prompt.value) == 0:
@@ -149,8 +148,9 @@ class TextualChat(App):
         self.title = f'oneping: {self.chat.provider}'
 
     def compose(self):
+        yield Header(id='header')
         yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
-        prompt = self.query_one('#prompt')
+        prompt = self.query_one('BarePrompt')
         self.set_focus(prompt)
