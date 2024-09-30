@@ -13,23 +13,23 @@ from .native import (
     embed as embed_native,
 )
 
-def reply(prompt, provider='local', native=False, **kwargs):
+def reply(query, provider='local', native=False, **kwargs):
     if native:
-        return reply_native(prompt, provider, **kwargs)
+        return reply_native(query, provider, **kwargs)
     else:
-        return reply_url(prompt, provider=provider, **kwargs)
+        return reply_url(query, provider=provider, **kwargs)
 
-def stream(prompt, provider='local', native=False, **kwargs):
+def stream(query, provider='local', native=False, **kwargs):
     if native:
-        return stream_native(prompt, provider, **kwargs)
+        return stream_native(query, provider, **kwargs)
     else:
-        return stream_url(prompt, provider=provider, **kwargs)
+        return stream_url(query, provider=provider, **kwargs)
 
-def stream_async(prompt, provider='local', native=False, **kwargs):
+def stream_async(query, provider='local', native=False, **kwargs):
     if native:
-        return stream_async_native(prompt, provider, **kwargs)
+        return stream_async_native(query, provider, **kwargs)
     else:
-        return stream_async_url(prompt, provider=provider, **kwargs)
+        return stream_async_url(query, provider=provider, **kwargs)
 
 def embed(text, provider='local', native=False, **kwargs):
     if native:

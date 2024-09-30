@@ -12,26 +12,26 @@ class Chat:
         self.kwargs = kwargs
         self.clear()
 
-    def __call__(self, prompt, **kwargs):
-        return self.reply(prompt, **kwargs)
+    def __call__(self, query, **kwargs):
+        return self.reply(query, **kwargs)
 
     def clear(self):
         self.history = []
 
-    def reply(self, prompt, **kwargs):
+    def reply(self, query, **kwargs):
         # get full history and text
         self.history, text = reply(
-            prompt, provider=self.provider, model=self.model, system=self.system,
+            query, provider=self.provider, model=self.model, system=self.system,
             history=self.history, **self.kwargs, **kwargs
         )
 
         # return text
         return text
 
-    async def stream_async(self, prompt, **kwargs):
+    async def stream_async(self, query, **kwargs):
         # get input history (plus prefill) and stream
         replies = stream_async(
-            prompt, provider=self.provider, model=self.model, system=self.system,
+            query, provider=self.provider, model=self.model, system=self.system,
             history=self.history, **self.kwargs, **kwargs
         )
 
@@ -43,14 +43,14 @@ class Chat:
 
         # update final history (reply includes prefill)
         self.history += [
-            {'role': 'user'     , 'content': prompt},
+            {'role': 'user'     , 'content': query},
             {'role': 'assistant', 'content': reply },
         ]
 
-    def stream(self, prompt, **kwargs):
+    def stream(self, query, **kwargs):
         # get input history (plus prefill) and stream
         replies = stream(
-            prompt, provider=self.provider, model=self.model, system=self.system,
+            query, provider=self.provider, model=self.model, system=self.system,
             history=self.history, **self.kwargs, **kwargs
         )
 
@@ -62,7 +62,7 @@ class Chat:
 
         # update final history (reply includes prefill)
         self.history += [
-            {'role': 'user'     , 'content': prompt},
+            {'role': 'user'     , 'content': query},
             {'role': 'assistant', 'content': reply },
         ]
 

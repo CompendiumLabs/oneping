@@ -23,16 +23,16 @@ ctrl_enter = 'keydown[key==\'Enter\'] from:#oneping'
 
 def ChatInput(placeholder='Type a message...'):
     return Textarea(
-        name='prompt', id='prompt', cls='h-[50px] grow rounded bg-gray-100 resize-none outline-none',
+        name='query', id='query', cls='h-[50px] grow rounded bg-gray-100 resize-none outline-none',
         placeholder=placeholder, type='text', hx_swap_oob='true'
     )
 
 def ChatSystem(prompt):
     return Div(prompt, cls='italic text-gray-500')
 
-def ChatBox(role, content, prompt=False):
-    extra = 'focus-within:border-blue-400 hover:border-blue-400' if prompt else ''
-    boxid = 'prompt-box' if prompt else None
+def ChatBox(role, content, query=False):
+    extra = 'focus-within:border-blue-400 hover:border-blue-400' if query else ''
+    boxid = 'query-box' if query else None
     title = Div(Span(role, cls='relative top-[-5px]'), cls='absolute top-[-10px] left-[10px] h-[20px] font-bold pl-1 pr-1 border border-gray-400 rounded bg-white small-caps cursor-default select-none')
     return Div(id=boxid, cls=f'chat-box relative border border-gray-400 rounded m-2 p-2 pt-3 bg-gray-100 {extra}')(title, content)
 
@@ -42,11 +42,11 @@ def ChatMessage(id=None, message=''):
     return Div(cls='message')(hidden, display)
 
 def ChatPrompt(route, trigger=ctrl_enter, hx_vals=None):
-    prompt = ChatInput()
+    query = ChatInput()
     form = Form(
         id='form', cls='flex flex-col grow', hx_ext='ws', ws_send=True,
         ws_connect=route, hx_trigger=trigger, hx_vals=hx_vals
-    )(prompt)
+    )(query)
     return Div(cls='flex flex-row')(form)
 
 def ChatHistory(history):
@@ -65,10 +65,10 @@ def ChatWindow(system=None, history=None, route='/generate', trigger=ctrl_enter,
     if history is None:
         history = []
     system = [ChatBox('system', ChatSystem(system))] if system is not None else []
-    prompt = ChatPrompt(route, trigger=trigger, hx_vals=hx_vals)
-    prompt_box = ChatBox('user', prompt, prompt=True)
+    query = ChatPrompt(route, trigger=trigger, hx_vals=hx_vals)
+    query_box = ChatBox('user', query, query=True)
     messages = ChatList(*ChatHistory(history))
-    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3')(*system, messages, prompt_box)
+    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3')(*system, messages, query_box)
 
 ##
 ## websocket generator
@@ -77,14 +77,14 @@ def ChatWindow(system=None, history=None, route='/generate', trigger=ctrl_enter,
 def randhex():
     return os.urandom(4).hex()
 
-async def websocket(prompt, stream, send):
+async def websocket(query, stream, send):
     await send('START')
 
-    # clear prompt input
+    # clear query input
     await send(ChatInput())
 
     # create user message
-    box_user = ChatBox('user', ChatMessage(message=prompt))
+    box_user = ChatBox('user', ChatMessage(message=query))
     await send(Div(box_user, hx_swap_oob='beforeend', id='chat'))
 
     # start assistant message
@@ -105,10 +105,10 @@ async def websocket(prompt, stream, send):
 ##
 
 chat_js = """
-function focusPrompt() {
-    const prompt = document.querySelector('#prompt');
-    prompt.focus();
-    prompt.setSelectionRange(prompt.value.length, prompt.value.length);
+function focusQuery() {
+    const query = document.querySelector('#query');
+    query.focus();
+    query.setSelectionRange(query.value.length, query.value.length);
 }
 function renderBox(box) {
     const data = box.querySelector('.message-data').textContent;
@@ -117,12 +117,12 @@ function renderBox(box) {
 }
 document.addEventListener('htmx:wsBeforeMessage', event => {
     const message = event.detail.message;
-    const prompt_box = document.querySelector('#prompt-box');
+    const query_box = document.querySelector('#query-box');
     if (message == 'START') {
-        prompt_box.classList.add('hidden');
+        query_box.classList.add('hidden');
     } else if (message == 'DONE') {
-        prompt_box.classList.remove('hidden');
-        focusPrompt();
+        query_box.classList.remove('hidden');
+        focusQuery();
     }
 });
 document.addEventListener('htmx:wsAfterMessage', event => {
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const box of boxes) {
         renderBox(box);
     }
-    focusPrompt();
+    focusQuery();
 });
 """
 
@@ -197,10 +197,10 @@ def FastHTMLChat(chat):
 
     # connect websocket
     @app.ws('/generate')
-    async def generate(prompt: str, send):
-        print(f'GENERATE: {prompt}')
-        stream = chat.stream_async(prompt)
-        await websocket(prompt, stream, send)
+    async def generate(query: str, send):
+        print(f'GENERATE: {query}')
+        stream = chat.stream_async(query)
+        await websocket(query, stream, send)
         print('\nDONE')
 
     # return app

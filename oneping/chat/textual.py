@@ -66,9 +66,9 @@ class ChatHistory(VerticalScroll):
         if self.system is not None:
             yield ChatMessage('system', self.system)
 
-class BarePrompt(Input):
+class BareQuery(Input):
     DEFAULT_CSS = """
-    BarePrompt {
+    BareQuery {
         background: $surface;
         padding: 0 1;
     }
@@ -91,7 +91,7 @@ class ChatInput(Static):
         self.border_title = 'user'
 
     def compose(self):
-        yield BarePrompt(height=3, placeholder='Type a message...')
+        yield BareQuery(height=3, placeholder='Type a message...')
 
 # textualize chat app
 class ChatWindow(Static):
@@ -113,13 +113,13 @@ class ChatWindow(Static):
 
     @on(Input.Submitted)
     async def on_input(self, event):
-        prompt = self.query_one('BarePrompt')
+        query = self.query_one('BareQuery')
         history = self.query_one('ChatHistory')
 
         # ignore empty messages
-        if len(message := prompt.value) == 0:
+        if len(message := query.value) == 0:
             return
-        prompt.clear()
+        query.clear()
 
         # mount user query and start response
         response = ChatMessage('assistant', '...')
@@ -151,5 +151,5 @@ class TextualChat(App):
         yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
-        prompt = self.query_one('BarePrompt')
-        self.set_focus(prompt)
+        query = self.query_one('BareQuery')
+        self.set_focus(query)

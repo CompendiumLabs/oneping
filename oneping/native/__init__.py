@@ -81,43 +81,43 @@ except ImportError:
 ## router
 ##
 
-def reply(prompt, provider, **kwargs):
+def reply(query, provider, **kwargs):
     if provider == 'openai':
-        return get_openai_response(prompt, **kwargs)
+        return get_openai_response(query, **kwargs)
     elif provider == 'anthropic':
-        return get_anthropic_response(prompt, **kwargs)
+        return get_anthropic_response(query, **kwargs)
     elif provider == 'fireworks':
-        return get_fireworks_response(prompt, **kwargs)
+        return get_fireworks_response(query, **kwargs)
     elif provider == 'groq':
-        return get_groq_response(prompt, **kwargs)
+        return get_groq_response(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def stream(prompt, provider, **kwargs):
+def stream(query, provider, **kwargs):
     if provider == 'openai':
-        return stream_openai_response(prompt, **kwargs)
+        return stream_openai_response(query, **kwargs)
     elif provider == 'anthropic':
-        return stream_anthropic_response(prompt, **kwargs)
+        return stream_anthropic_response(query, **kwargs)
     elif provider == 'fireworks':
-        return stream_fireworks_response(prompt, **kwargs)
+        return stream_fireworks_response(query, **kwargs)
     elif provider == 'groq':
-        return stream_groq_response(prompt, **kwargs)
+        return stream_groq_response(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def stream_async(prompt, provider, **kwargs):
+def stream_async(query, provider, **kwargs):
     if provider == 'openai':
-        return async_openai_response(prompt, **kwargs)
+        return async_openai_response(query, **kwargs)
     elif provider == 'anthropic':
-        return async_anthropic_response(prompt, **kwargs)
+        return async_anthropic_response(query, **kwargs)
     elif provider == 'fireworks':
-        return async_fireworks_response(prompt, **kwargs)
+        return async_fireworks_response(query, **kwargs)
     elif provider == 'groq':
-        return async_groq_response(prompt, **kwargs)
+        return async_groq_response(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:

@@ -59,7 +59,7 @@ def prepare_model(prov, model=None):
     return {'model': model} if model is not None else {}
 
 def prepare_request(
-    prompt, provider='local', system=None, prefill=None, history=None, url=None,
+    query, provider='local', system=None, prefill=None, history=None, url=None,
     port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider
@@ -81,7 +81,7 @@ def prepare_request(
     payload_model = prepare_model(prov, model=model)
 
     # get message payload
-    payload_message = prov['payload'](prompt=prompt, system=system, prefill=prefill, history=history)
+    payload_message = prov['payload'](query=query, system=system, prefill=prefill, history=history)
 
     # base payload
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
@@ -94,13 +94,13 @@ def prepare_request(
 ## requests
 ##
 
-def reply(prompt, provider='local', history=None, **kwargs):
+def reply(query, provider='local', history=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['response']
 
     # prepare request
-    url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
+    url, headers, payload = prepare_request(query, provider=provider, history=history, **kwargs)
 
     # request response and return
     response = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -140,13 +140,13 @@ async def iter_lines_buffered(inputs):
     if len(buffer) > 0:
         yield buffer
 
-def stream(prompt, provider='local', history=None, prefill=None, **kwargs):
+def stream(query, provider='local', history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['stream']
 
     # prepare request
-    url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
+    url, headers, payload = prepare_request(query, provider=provider, history=history, **kwargs)
 
     # augment headers/payload
     headers['Accept'] = 'text/event-stream'
@@ -167,13 +167,13 @@ def stream(prompt, provider='local', history=None, prefill=None, **kwargs):
                 parsed = json.loads(data)
                 yield extractor(parsed)
 
-async def stream_async(prompt, provider='local', history=None, prefill=None, **kwargs):
+async def stream_async(query, provider='local', history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['stream']
 
     # prepare request
-    url, headers, payload = prepare_request(prompt, provider=provider, history=history, **kwargs)
+    url, headers, payload = prepare_request(query, provider=provider, history=history, **kwargs)
 
     # augment headers/payload
     headers['Accept'] = 'text/event-stream'

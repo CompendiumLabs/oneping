@@ -28,12 +28,12 @@ The easiest way to handle authentication is to set an API key environment variab
 
 Basic usage with Anthropic through the URL interface:
 ```python
-response = oneping.reply(prompt, provider='anthropic')
+response = oneping.reply(query, provider='anthropic')
 ```
 
 The `reply` function accepts a number of arguments including (some of these have per-provider defaults):
 
-- `prompt` (required): The prompt to send to the LLM (required)
+- `query` (required): The query to send to the LLM (required)
 - `provider` = `local`: The provider to use: `openai`, `anthropic`, `fireworks`, or `local`
 - `system` = `None`: The system prompt to use (not required, but recommended)
 - `prefill` = `None`: Start "assistant" response with a string (Anthropic doesn't like newlines in this)
@@ -47,7 +47,7 @@ The `reply` function accepts a number of arguments including (some of these have
 
 For example, to use the OpenAI API with a custom `system` prompt:
 ```python
-response = oneping.reply(prompt, provider='openai', system=system)
+response = oneping.reply(query, provider='openai', system=system)
 ```
 
 To conduct a full conversation with a local LLM, see `Chat` interface below. For streaming, use the function `stream` and for `async` streaming, use `stream_async`. Both of these take the same arguments as `reply`.
@@ -82,8 +82,8 @@ The `Chat` interface is a simple wrapper for a conversation history. It can be u
 
 ```python
 chat = oneping.Chat(provider='anthropic', system=system)
-response1 = chat(prompt1)
-response2 = chat(prompt2)
+reply1 = chat(query1)
+reply2 = chat(query2)
 ```
 
 There is also a `textual` powered console interface and a `fasthtml` powered web interface. You can call these with: `oneping console` or `oneping web`.

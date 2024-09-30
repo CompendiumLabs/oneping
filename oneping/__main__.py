@@ -6,29 +6,29 @@ from .interface import reply, stream, embed
 from .chat import chat_textual, chat_fasthtml
 from .server import start as start_server
 
-def get_prompt(prompt):
-    if prompt is None:
+def get_query(query):
+    if query is None:
         if not sys.stdin.isatty():
-            prompt = sys.stdin.read()
-    return prompt
+            query = sys.stdin.read()
+    return query
 
 class ChatCLI:
-    def reply(self, prompt=None, **kwargs):
-        prompt = get_prompt(prompt)
-        if prompt is None:
-            return 'No prompt specified'
-        return reply(prompt, **kwargs)
+    def reply(self, query=None, **kwargs):
+        query = get_query(query)
+        if query is None:
+            return 'No query specified'
+        return reply(query, **kwargs)
 
-    def stream(self, prompt=None, **kwargs):
-        prompt = get_prompt(prompt)
-        if prompt is None:
-            return 'No prompt specified'
-        reply = stream(prompt, **kwargs)
+    def stream(self, query=None, **kwargs):
+        query = get_query(query)
+        if query is None:
+            return 'No query specified'
+        reply = stream(query, **kwargs)
         streamer(reply)
         print()
 
     def embed(self, text=None, **kwargs):
-        text = get_prompt(text)
+        text = get_query(text)
         if text is None:
             return 'No text specified'
         return embed(text, **kwargs)
