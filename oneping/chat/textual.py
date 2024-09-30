@@ -1,5 +1,4 @@
 # textual chat interface
-# https://textual.textualize.io/blog/2024/09/15/anatomy-of-a-textual-user-interface/
 
 from textual import on, work
 from textual.app import App, ComposeResult

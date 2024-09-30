@@ -41,11 +41,11 @@ def ChatMessage(id=None, message=''):
     display = Div(cls='message-display')
     return Div(cls='message')(hidden, display)
 
-def ChatPrompt(route, trigger=ctrl_enter):
+def ChatPrompt(route, trigger=ctrl_enter, hx_vals=None):
     prompt = ChatInput()
     form = Form(
         id='form', cls='flex flex-col grow', hx_ext='ws', ws_send=True,
-        ws_connect=route, hx_trigger=trigger
+        ws_connect=route, hx_trigger=trigger, hx_vals=hx_vals
     )(prompt)
     return Div(cls='flex flex-row')(form)
 
@@ -61,13 +61,14 @@ def ChatHistory(history):
 def ChatList(*children):
     return Div(id='chat', cls='flex flex-col')(*children)
 
-def ChatWindow(system=None, history=None, route='/generate'):
+def ChatWindow(system=None, history=None, route='/generate', trigger=ctrl_enter, hx_vals=None):
     if history is None:
         history = []
     system = [ChatBox('system', ChatSystem(system))] if system is not None else []
-    prompt = ChatBox('user', ChatPrompt(route), prompt=True)
+    prompt = ChatPrompt(route, trigger=trigger, hx_vals=hx_vals)
+    prompt_box = ChatBox('user', prompt, prompt=True)
     messages = ChatList(*ChatHistory(history))
-    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3 overflow-y-scroll')(*system, messages, prompt)
+    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3')(*system, messages, prompt_box)
 
 ##
 ## websocket generator
