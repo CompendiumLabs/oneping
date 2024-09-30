@@ -15,7 +15,7 @@ from ..utils import sprint
 ## global
 ##
 
-ctrl_enter = 'keydown[ctrlKey&&key==\'Enter\'] from:body'
+ctrl_enter = 'keydown[key==\'Enter\'] from:#oneping'
 
 ##
 ## fasthtml components
@@ -108,6 +108,7 @@ chat_js = """
 function focusPrompt() {
     const prompt = document.querySelector('#prompt');
     prompt.focus();
+    prompt.setSelectionRange(prompt.value.length, prompt.value.length);
 }
 function renderBox(box) {
     const data = box.querySelector('.message-data').textContent;
@@ -121,6 +122,7 @@ document.addEventListener('htmx:wsBeforeMessage', event => {
         prompt_box.classList.add('hidden');
     } else if (message == 'DONE') {
         prompt_box.classList.remove('hidden');
+        focusPrompt();
     }
 });
 document.addEventListener('htmx:wsAfterMessage', event => {
@@ -189,9 +191,8 @@ def FastHTMLChat(chat):
         style = Style(chat_css)
         script = Script(chat_js)
         title = Title('Oneping Chat')
-        system, history = chat.system, chat.history
-        wind = ChatWindow(system=system, history=history)
-        body = Body(cls='h-full w-full')(wind)
+        wind = ChatWindow(system=chat.system, history=chat.history)
+        body = Body(cls='h-screen w-screen')(wind)
         return (title, style, script), body
 
     # connect websocket
