@@ -68,7 +68,7 @@ def ChatWindow(system=None, history=None, route='/generate', trigger=ctrl_enter,
     query = ChatPrompt(route, trigger=trigger, hx_vals=hx_vals)
     query_box = ChatBox('user', query, query=True)
     messages = ChatList(*ChatHistory(history))
-    return Div(id='oneping', cls='flex flex-col h-full w-full pt-3')(*system, messages, query_box)
+    return Div(id='oneping', cls='flex flex-col w-full pt-3')(*system, messages, query_box)
 
 ##
 ## websocket generator

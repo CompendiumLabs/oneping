@@ -94,13 +94,15 @@ def prepare_request(
 ## requests
 ##
 
-def reply(query, provider='local', history=None, **kwargs):
+def reply(query, provider='local', history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['response']
 
     # prepare request
-    url, headers, payload = prepare_request(query, provider=provider, history=history, **kwargs)
+    url, headers, payload = prepare_request(
+        query, provider=provider, history=history, prefill=prefill, **kwargs
+    )
 
     # request response and return
     response = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -110,10 +112,15 @@ def reply(query, provider='local', history=None, **kwargs):
     data = response.json()
     text = extractor(data)
 
+    # add in prefill
+    if prefill is not None:
+        text = prefill + text
+
     # update history
     if history is not None:
         history_sent = strip_system(payload['messages'])
-        return compose_history(history_sent, text), text
+        history_next = compose_history(history_sent, text)
+        return history_next, text
 
     # just return text
     return text
@@ -157,10 +164,6 @@ def stream(query, provider='local', history=None, prefill=None, **kwargs):
         # check for errors
         response.raise_for_status()
 
-        # yield prefill for consistency
-        if prefill is not None:
-            yield prefill
-
         # extract stream contents
         for line in response.iter_lines():
             if (data := parse_stream_data(line)) is not None:
@@ -184,10 +187,6 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
         async with session.post(url, headers=headers, data=json.dumps(payload)) as response:
             # check for errors
             response.raise_for_status()
-
-            # yield prefill for consistency
-            if prefill is not None:
-                yield prefill
 
             # extract stream contents
             chunks = response.content.iter_any()
