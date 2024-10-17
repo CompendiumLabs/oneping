@@ -2,8 +2,9 @@ import sys
 import fire
 
 from .utils import streamer
-from .interface import reply, stream, embed
-from .chat import chat_textual, chat_fasthtml
+from .api import reply, stream, embed
+from .interface.textual import main as main_textual
+from .interface.fasthtml import main as main_fasthtml
 from .server import start as start_server
 
 def get_query(query):
@@ -34,10 +35,10 @@ class ChatCLI:
         return embed(text, **kwargs)
 
     def console(self, **kwargs):
-        chat_textual(**kwargs)
+        main_textual(**kwargs)
 
     def web(self, **kwargs):
-        chat_fasthtml(**kwargs)
+        main_fasthtml(**kwargs)
 
     def server(self, model, **kwargs):
         start_server(model, **kwargs)

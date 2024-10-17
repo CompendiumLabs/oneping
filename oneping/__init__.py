@@ -11,6 +11,6 @@ from .native import (
     stream_async as stream_async_native,
     embed as embed_native,
 )
-from .interface import reply, stream, stream_async, embed
+from .api import reply, stream, stream_async, embed
 from .chat import Chat
 from .server import start as start_server

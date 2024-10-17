@@ -205,3 +205,17 @@ def FastHTMLChat(chat):
 
     # return app
     return app
+
+# fasthtml powered chat interface
+def main(chat_host='127.0.0.1', chat_port=5000, reload=False, **kwargs):
+    import uvicorn
+    from fasthtml.common import serve
+
+    # make application
+    chat = Chat(**kwargs)
+    app = FastHTMLChat(chat)
+
+    # run server
+    config = uvicorn.Config(app, host=chat_host, port=chat_port, reload=reload)
+    server = uvicorn.Server(config)
+    server.run()

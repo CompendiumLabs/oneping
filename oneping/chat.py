@@ -1,7 +1,7 @@
 # chat interface
 
-from ..providers import DEFAULT_SYSTEM
-from ..interface import reply, stream, stream_async
+from .providers import DEFAULT_SYSTEM
+from .api import reply, stream, stream_async
 
 # chat interface
 class Chat:
@@ -65,25 +65,3 @@ class Chat:
             {'role': 'user'     , 'content': query},
             {'role': 'assistant', 'content': reply },
         ]
-
-# textual powered chat interface
-def chat_textual(provider='local', **kwargs):
-    from .textual import TextualChat
-    chat = Chat(provider=provider, **kwargs)
-    app = TextualChat(chat)
-    app.run()
-
-# fasthtml powered chat interface
-def chat_fasthtml(provider='local', chat_host='127.0.0.1', chat_port=5000, reload=False, **kwargs):
-    import uvicorn
-    from fasthtml.common import serve
-    from .fasthtml import FastHTMLChat
-
-    # make application
-    chat = Chat(provider=provider, **kwargs)
-    app = FastHTMLChat(chat)
-
-    # run server
-    config = uvicorn.Config(app, host=chat_host, port=chat_port, reload=reload)
-    server = uvicorn.Server(config)
-    server.run()

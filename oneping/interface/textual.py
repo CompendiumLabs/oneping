@@ -153,3 +153,9 @@ class TextualChat(App):
     def on_mount(self):
         query = self.query_one('BareQuery')
         self.set_focus(query)
+
+# textual powered chat interface
+def main(**kwargs):
+    chat = Chat(**kwargs)
+    app = TextualChat(chat)
+    app.run()
