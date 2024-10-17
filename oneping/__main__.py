@@ -3,8 +3,6 @@ import fire
 
 from .utils import streamer
 from .api import reply, stream, embed
-from .interface.textual import main as main_textual
-from .interface.fasthtml import main as main_fasthtml
 from .server import start as start_server
 
 def get_query(query):
@@ -35,9 +33,11 @@ class ChatCLI:
         return embed(text, **kwargs)
 
     def console(self, **kwargs):
+        from .interface.textual import main as main_textual
         main_textual(**kwargs)
 
     def web(self, **kwargs):
+        from .interface.fasthtml import main as main_fasthtml
         main_fasthtml(**kwargs)
 
     def server(self, model, **kwargs):

@@ -6,10 +6,11 @@ import asyncstdlib as a
 from fasthtml.components import Use
 from fasthtml.common import (
     serve, FastHTML, Script, Style, Title, Body, Div, Span, Hidden,
-    Form, Button, Input, Textarea, Svg
+    Form, Button, Input, Textarea, Svg, ScriptX, StyleX
 )
 
 from ..utils import sprint
+from ..chat import Chat
 
 ##
 ## global
@@ -78,7 +79,7 @@ def randhex():
     return os.urandom(4).hex()
 
 async def websocket(query, stream, send):
-    await send('START')
+    await send('ONEPING_START')
 
     # clear query input
     await send(ChatInput())
@@ -98,80 +99,22 @@ async def websocket(query, stream, send):
         swap_op = 'innerHTML' if i == 0 else 'beforeend'
         await send(Span(chunk, hx_swap_oob=swap_op, id=msg_asst))
 
-    await send('DONE')
+    await send('ONEPING_DONE')
 
 ##
-## chat javascript
+## web content
 ##
 
-chat_js = """
-function focusQuery() {
-    const query = document.querySelector('#query');
-    query.focus();
-    query.setSelectionRange(query.value.length, query.value.length);
-}
-function renderBox(box) {
-    const data = box.querySelector('.message-data').textContent;
-    const display = box.querySelector('.message-display');
-    display.innerHTML = marked.parse(data);
-}
-document.addEventListener('htmx:wsBeforeMessage', event => {
-    const message = event.detail.message;
-    const query_box = document.querySelector('#query-box');
-    if (message == 'START') {
-        query_box.classList.add('hidden');
-    } else if (message == 'DONE') {
-        query_box.classList.remove('hidden');
-        focusQuery();
-    }
-});
-document.addEventListener('htmx:wsAfterMessage', event => {
-    const last = document.querySelector('#chat > .chat-box:last-child > .message');
-    if (last == null) return;
-    renderBox(last);
-    const chat = document.querySelector('#chat');
-    chat.scrollTop = chat.scrollHeight;
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const boxes = document.querySelectorAll('#chat > .chat-box > .message');
-    for (const box of boxes) {
-        renderBox(box);
-    }
-    focusQuery();
-});
-"""
+def get_lib_dir():
+    return os.path.dirname(__file__)
 
-chat_css = """
-.hidden {
-    display: none;
-}
-.message-display ol {
-    list-style-type: decimal;
-    padding-left: 40px;
-}
+def ChatCSS():
+    css_path = os.path.join(get_lib_dir(), 'web/fasthtml.css')
+    return StyleX(css_path)
 
-.message-display ul {
-    list-style-type: disc;
-    padding-left: 40px;
-}
-
-.message-display pre {
-    background-color: white;
-    border: 1px solid #ddd;
-    line-height: 1.2;
-    padding: 10px;
-}
-
-.message-display code {
-    font-family: monospace;
-    font-size: 12px;
-    white-space: pre-wrap;
-}
-
-.message-display *:not(:last-child) {
-    margin-bottom: 10px;
-}
-"""
+def ChatJS():
+    js_path = os.path.join(get_lib_dir(), 'web/fasthtml.js')
+    return ScriptX(js_path)
 
 ##
 ## fasthtml app
@@ -188,8 +131,8 @@ def FastHTMLChat(chat):
     # connect main
     @app.route('/')
     def index():
-        style = Style(chat_css)
-        script = Script(chat_js)
+        style = ChatCSS()
+        script = ChatJS()
         title = Title('Oneping Chat')
         wind = ChatWindow(system=chat.system, history=chat.history)
         body = Body(cls='h-screen w-screen')(wind)

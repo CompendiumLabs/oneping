@@ -1,0 +1,30 @@
+.hidden {
+    display: none;
+}
+
+.message-display ol {
+    list-style-type: decimal;
+    padding-left: 40px;
+}
+
+.message-display ul {
+    list-style-type: disc;
+    padding-left: 40px;
+}
+
+.message-display pre {
+    background-color: white;
+    border: 1px solid #ddd;
+    line-height: 1.2;
+    padding: 10px;
+}
+
+.message-display code {
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.message-display *:not(:last-child) {
+    margin-bottom: 10px;
+}
