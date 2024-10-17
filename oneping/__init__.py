@@ -1,6 +1,7 @@
 from .utils import cumcat, sprint, streamer, streamer_async
 from .curl import (
     reply as reply_url,
+    reply_async as reply_async_url,
     stream as stream_url,
     stream_async as stream_async_url,
     embed as embed_url,
@@ -11,6 +12,6 @@ from .native import (
     stream_async as stream_async_native,
     embed as embed_native,
 )
-from .api import reply, stream, stream_async, embed
+from .api import reply, reply_async, stream, stream_async, embed
 from .chat import Chat
 from .server import start as start_server

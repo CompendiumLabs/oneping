@@ -125,6 +125,38 @@ def reply(query, provider='local', history=None, prefill=None, **kwargs):
     # just return text
     return text
 
+async def reply_async(query, provider='local', history=None, prefill=None, **kwargs):
+    # get provider
+    prov = get_provider(provider)
+    extractor = prov['response']
+
+    # prepare request
+    url, headers, payload = prepare_request(
+        query, provider=provider, history=history, prefill=prefill, **kwargs
+    )
+
+    # request response and return
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers, data=json.dumps(payload)) as response:
+            response.raise_for_status()
+
+            # extract text
+            data = await response.json()
+            text = extractor(data)
+
+    # add in prefill
+    if prefill is not None:
+        text = prefill + text
+
+    # update history
+    if history is not None:
+        history_sent = strip_system(payload['messages'])
+        history_next = compose_history(history_sent, text)
+        return history_next, text
+
+    # just return text
+    return text
+
 ##
 ## stream requests
 ##

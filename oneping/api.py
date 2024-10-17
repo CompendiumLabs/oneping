@@ -2,6 +2,7 @@
 
 from .curl import (
     reply as reply_url,
+    reply_async as reply_async_url,
     stream as stream_url,
     stream_async as stream_async_url,
     embed as embed_url,
@@ -18,6 +19,12 @@ def reply(query, provider='local', native=False, **kwargs):
         return reply_native(query, provider, **kwargs)
     else:
         return reply_url(query, provider=provider, **kwargs)
+
+def reply_async(query, provider='local', native=False, **kwargs):
+    if native:
+        raise NotImplementedError('async native not implemented')
+    else:
+        return reply_async_url(query, provider=provider, **kwargs)
 
 def stream(query, provider='local', native=False, **kwargs):
     if native:

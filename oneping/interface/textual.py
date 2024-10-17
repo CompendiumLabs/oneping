@@ -12,6 +12,7 @@ from rich.text import Text
 from rich.panel import Panel
 
 from ..utils import cumcat
+from ..chat import Chat
 
 ##
 ## globals
