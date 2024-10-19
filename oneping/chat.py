@@ -54,7 +54,7 @@ class Chat:
         # update final history (reply includes prefill)
         self.history += [
             {'role': 'user'     , 'content': query},
-            {'role': 'assistant', 'content': reply },
+            {'role': 'assistant', 'content': reply},
         ]
 
     async def stream_async(self, query, **kwargs):

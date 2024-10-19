@@ -185,7 +185,9 @@ def stream(query, provider='local', history=None, prefill=None, **kwargs):
     extractor = prov['stream']
 
     # prepare request
-    url, headers, payload = prepare_request(query, provider=provider, history=history, **kwargs)
+    url, headers, payload = prepare_request(
+        query, provider=provider, history=history, prefill=prefill, **kwargs
+    )
 
     # augment headers/payload
     headers['Accept'] = 'text/event-stream'
@@ -195,6 +197,10 @@ def stream(query, provider='local', history=None, prefill=None, **kwargs):
     with requests.post(url, headers=headers, data=json.dumps(payload), stream=True) as response:
         # check for errors
         response.raise_for_status()
+
+        # yield prefill
+        if prefill is not None:
+            yield prefill
 
         # extract stream contents
         for line in response.iter_lines():
@@ -208,7 +214,9 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
     extractor = prov['stream']
 
     # prepare request
-    url, headers, payload = prepare_request(query, provider=provider, history=history, **kwargs)
+    url, headers, payload = prepare_request(
+        query, provider=provider, history=history, prefill=prefill, **kwargs
+    )
 
     # augment headers/payload
     headers['Accept'] = 'text/event-stream'
@@ -219,6 +227,10 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
         async with session.post(url, headers=headers, data=json.dumps(payload)) as response:
             # check for errors
             response.raise_for_status()
+
+            # yield prefill
+            if prefill is not None:
+                yield prefill
 
             # extract stream contents
             chunks = response.content.iter_any()
