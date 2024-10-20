@@ -25,4 +25,4 @@ chat = ['asyncstdlib', 'textual', 'python-fasthtml']
 Homepage = 'http://github.com/CompendiumLabs/oneping'
 
 [tool.setuptools]
-packages = ['oneping', 'oneping.native', 'oneping.chat']
+packages = ['oneping', 'oneping.native', 'oneping.interface']
