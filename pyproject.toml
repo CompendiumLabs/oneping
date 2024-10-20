@@ -1,6 +1,6 @@
 [project]
 name = 'oneping'
-version = '0.5.5'
+version = '0.5.6'
 description = 'LLM provider abstraction layer.'
 readme = { file = 'README.md' , content-type = 'text/markdown' }
 authors = [{ name = 'Doug Hanley', email = 'doug@compendiumlabs.ai' }]
@@ -26,3 +26,6 @@ Homepage = 'http://github.com/CompendiumLabs/oneping'
 
 [tool.setuptools]
 packages = ['oneping', 'oneping.native', 'oneping.interface']
+
+[tool.setuptools.package-data]
+"oneping.interface" = ["web/*"]
