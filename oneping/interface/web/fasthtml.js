@@ -1,6 +1,6 @@
 // set focus on query box
 function focusQuery() {
-    const query = document.querySelector('#query');
+    const query = document.getElementById('query');
     query.focus();
     query.setSelectionRange(query.value.length, query.value.length);
 }
@@ -15,7 +15,7 @@ function renderBox(box) {
 // handle websocket events - hide and show query box
 document.addEventListener('htmx:wsBeforeMessage', event => {
     const message = event.detail.message;
-    const query_box = document.querySelector('#query-box');
+    const query_box = document.getElementById('query-box');
     if (message == 'ONEPING_START') {
         query_box.classList.add('hidden');
     } else if (message == 'ONEPING_DONE') {
@@ -26,16 +26,17 @@ document.addEventListener('htmx:wsBeforeMessage', event => {
 
 // handle websocket events - render last message and scroll to bottom
 document.addEventListener('htmx:wsAfterMessage', event => {
-    const last = document.querySelector('#chat > .chat-box:last-child > .message');
+    const chat = document.getElementById('chat');
+    const last = chat.querySelector('.chat-box:last-child > .message');
     if (last == null) return;
     renderBox(last);
-    const chat = document.querySelector('#chat');
     chat.scrollTop = chat.scrollHeight;
 });
 
 // render markdown in all messages and set focus on query box
 document.addEventListener('DOMContentLoaded', () => {
-    const boxes = document.querySelectorAll('#chat > .chat-box > .message');
+    const chat = document.getElementById('chat');
+    const boxes = chat.querySelectorAll('.chat-box > .message');
     for (const box of boxes) {
         renderBox(box);
     }

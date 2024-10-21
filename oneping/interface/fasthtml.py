@@ -45,7 +45,7 @@ def ChatMessage(id=None, message=''):
 def ChatPrompt(route, trigger=ctrl_enter, hx_vals=None):
     query = ChatInput()
     form = Form(
-        id='form', cls='flex flex-col grow', hx_ext='ws', ws_send=True,
+        id='query-form', cls='flex flex-col grow', hx_ext='ws', ws_send=True,
         ws_connect=route, hx_trigger=trigger, hx_vals=hx_vals
     )(query)
     return Div(cls='flex flex-row')(form)
