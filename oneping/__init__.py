@@ -8,6 +8,7 @@ from .curl import (
 )
 from .native import (
     reply as reply_native,
+    reply_async as reply_async_native,
     stream as stream_native,
     stream_async as stream_async_native,
     embed as embed_native,

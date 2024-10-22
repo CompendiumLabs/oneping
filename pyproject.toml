@@ -1,6 +1,6 @@
 [project]
 name = 'oneping'
-version = '0.5.6'
+version = '0.5.7'
 description = 'LLM provider abstraction layer.'
 readme = { file = 'README.md' , content-type = 'text/markdown' }
 authors = [{ name = 'Doug Hanley', email = 'doug@compendiumlabs.ai' }]

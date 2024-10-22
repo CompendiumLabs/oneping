@@ -17,15 +17,17 @@ class DummyFunction:
 
 try:
     from .anthropic import (
-        get_llm_response as get_anthropic_response,
-        stream_llm_response as stream_anthropic_response,
-        async_llm_response as async_anthropic_response,
+        reply as reply_anthropic,
+        stream as stream_anthropic,
+        reply_async as reply_async_anthropic,
+        stream_async as stream_async_anthropic,
     )
 except ImportError:
     dummy_anthropic = DummyFunction('anthropic')
-    get_anthropic_response = dummy_anthropic
-    stream_anthropic_response = dummy_anthropic
-    async_anthropic_response = dummy_anthropic
+    reply_anthropic = dummy_anthropic
+    stream_anthropic = dummy_anthropic
+    reply_async_anthropic = dummy_anthropic
+    stream_async_anthropic = dummy_anthropic
 
 ##
 ## openai
@@ -33,17 +35,19 @@ except ImportError:
 
 try:
     from .openai import (
-        get_llm_response as get_openai_response,
-        stream_llm_response as stream_openai_response,
-        async_llm_response as async_openai_response,
-        get_embed_response as get_openai_embed_response,
+        reply as reply_openai,
+        stream as stream_openai,
+        reply_async as reply_async_openai,
+        stream_async as stream_async_openai,
+        embed as embed_openai,
     )
 except ImportError:
     dummy_openai = DummyFunction('openai')
-    get_openai_response = dummy_openai
-    stream_openai_response = dummy_openai
-    async_openai_response = dummy_openai
-    get_openai_embed_response = dummy_openai
+    reply_openai = dummy_openai
+    stream_openai = dummy_openai
+    reply_async_openai = dummy_openai
+    stream_async_openai = dummy_openai
+    embed_openai = dummy_openai
 
 ##
 ## fireworks
@@ -51,15 +55,17 @@ except ImportError:
 
 try:
     from .fireworks import (
-        get_llm_response as get_fireworks_response,
-        stream_llm_response as stream_fireworks_response,
-        async_llm_response as async_fireworks_response,
+        reply as reply_fireworks,
+        stream as stream_fireworks,
+        reply_async as reply_async_fireworks,
+        stream_async as stream_async_fireworks,
     )
 except ImportError:
     dummy_fireworks = DummyFunction('fireworks-ai')
-    get_fireworks_response = dummy_fireworks
-    stream_fireworks_response = dummy_fireworks
-    async_fireworks_response = dummy_fireworks
+    reply_fireworks = dummy_fireworks
+    stream_fireworks = dummy_fireworks
+    reply_async_fireworks = dummy_fireworks
+    stream_async_fireworks = dummy_fireworks
 
 ##
 ## groq
@@ -67,15 +73,17 @@ except ImportError:
 
 try:
     from .groq import (
-        get_llm_response as get_groq_response,
-        stream_llm_response as stream_groq_response,
-        async_llm_response as async_groq_response,
+        reply as reply_groq,
+        reply_async as reply_async_groq,
+        stream as stream_groq,
+        stream_async as stream_async_groq,
     )
 except ImportError:
     dummy_groq = DummyFunction('groq')
-    get_groq_response = dummy_groq
-    stream_groq_response = dummy_groq
-    async_groq_response = dummy_groq
+    reply_groq = dummy_groq
+    reply_async_groq = dummy_groq
+    stream_groq = dummy_groq
+    stream_async_groq = dummy_groq
 
 ##
 ## router
@@ -83,13 +91,27 @@ except ImportError:
 
 def reply(query, provider, **kwargs):
     if provider == 'openai':
-        return get_openai_response(query, **kwargs)
+        return reply_openai(query, **kwargs)
     elif provider == 'anthropic':
-        return get_anthropic_response(query, **kwargs)
+        return reply_anthropic(query, **kwargs)
     elif provider == 'fireworks':
-        return get_fireworks_response(query, **kwargs)
+        return reply_fireworks(query, **kwargs)
     elif provider == 'groq':
-        return get_groq_response(query, **kwargs)
+        return reply_groq(query, **kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} not found')
+
+def reply_async(query, provider, **kwargs):
+    if provider == 'openai':
+        return reply_async_openai(query, **kwargs)
+    elif provider == 'anthropic':
+        return reply_async_anthropic(query, **kwargs)
+    elif provider == 'fireworks':
+        return reply_async_fireworks(query, **kwargs)
+    elif provider == 'groq':
+        return reply_async_groq(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -97,13 +119,13 @@ def reply(query, provider, **kwargs):
 
 def stream(query, provider, **kwargs):
     if provider == 'openai':
-        return stream_openai_response(query, **kwargs)
+        return stream_openai(query, **kwargs)
     elif provider == 'anthropic':
-        return stream_anthropic_response(query, **kwargs)
+        return stream_anthropic(query, **kwargs)
     elif provider == 'fireworks':
-        return stream_fireworks_response(query, **kwargs)
+        return stream_fireworks(query, **kwargs)
     elif provider == 'groq':
-        return stream_groq_response(query, **kwargs)
+        return stream_groq(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -111,13 +133,13 @@ def stream(query, provider, **kwargs):
 
 def stream_async(query, provider, **kwargs):
     if provider == 'openai':
-        return async_openai_response(query, **kwargs)
+        return stream_async_openai(query, **kwargs)
     elif provider == 'anthropic':
-        return async_anthropic_response(query, **kwargs)
+        return stream_async_anthropic(query, **kwargs)
     elif provider == 'fireworks':
-        return async_fireworks_response(query, **kwargs)
+        return stream_async_fireworks(query, **kwargs)
     elif provider == 'groq':
-        return async_groq_response(query, **kwargs)
+        return stream_async_groq(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -125,6 +147,8 @@ def stream_async(query, provider, **kwargs):
 
 def embed(text, provider, **kwargs):
     if provider == 'openai':
-        return get_openai_embed_response(text, **kwargs)
+        return embed_openai(text, **kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} does not support embeddings')

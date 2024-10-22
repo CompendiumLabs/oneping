@@ -5,9 +5,7 @@ from .api import reply, reply_async, stream, stream_async
 
 # chat interface
 class Chat:
-    def __init__(self, provider='local', model=None, system=None, **kwargs):
-        self.provider = provider
-        self.model = model
+    def __init__(self, system=None, **kwargs):
         self.system = DEFAULT_SYSTEM if system is None else system
         self.kwargs = kwargs
         self.clear()
@@ -21,8 +19,7 @@ class Chat:
     def reply(self, query, **kwargs):
         # get full history and text
         self.history, text = reply(
-            query, provider=self.provider, model=self.model, system=self.system,
-            history=self.history, **self.kwargs, **kwargs
+            query, system=self.system, history=self.history, **self.kwargs, **kwargs
         )
 
         # return text
@@ -31,8 +28,7 @@ class Chat:
     async def reply_async(self, query, **kwargs):
         # get full history and text
         self.history, text = await reply_async(
-            query, provider=self.provider, model=self.model, system=self.system,
-            history=self.history, **self.kwargs, **kwargs
+            query, system=self.system, history=self.history, **self.kwargs, **kwargs
         )
 
         # return text
@@ -41,8 +37,7 @@ class Chat:
     def stream(self, query, **kwargs):
         # get input history (plus prefill) and stream
         replies = stream(
-            query, provider=self.provider, model=self.model, system=self.system,
-            history=self.history, **self.kwargs, **kwargs
+            query, system=self.system, history=self.history, **self.kwargs, **kwargs
         )
 
         # yield text stream
@@ -60,8 +55,7 @@ class Chat:
     async def stream_async(self, query, **kwargs):
         # get input history (plus prefill) and stream
         replies = stream_async(
-            query, provider=self.provider, model=self.model, system=self.system,
-            history=self.history, **self.kwargs, **kwargs
+            query, system=self.system, history=self.history, **self.kwargs, **kwargs
         )
 
         # yield text stream

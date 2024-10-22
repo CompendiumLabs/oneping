@@ -16,6 +16,7 @@ DEFAULT_MAX_TOKENS = 1024
 ##
 
 OPENAI_MODEL = 'gpt-4o'
+OPENAI_EMBED = 'text-embedding-3-small'
 ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p1-70b-instruct'
 GROQ_MODEL = 'llama-3.1-70b-versatile'
