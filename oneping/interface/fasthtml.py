@@ -16,7 +16,7 @@ from ..chat import Chat
 ## global
 ##
 
-ctrl_enter = 'keydown[key==\'Enter\'] from:#oneping'
+scoped_enter = 'keydown[key==\'Enter\'] from:#oneping'
 
 ##
 ## fasthtml components
@@ -42,7 +42,7 @@ def ChatMessage(id=None, message=''):
     display = Div(cls='message-display')
     return Div(cls='message')(hidden, display)
 
-def ChatPrompt(route, trigger=ctrl_enter, hx_vals=None):
+def ChatPrompt(route, trigger=None, hx_vals=None):
     query = ChatInput()
     form = Form(
         id='query-form', cls='flex flex-col grow', hx_ext='ws', ws_send=True,
@@ -62,7 +62,7 @@ def ChatHistory(history):
 def ChatList(*children):
     return Div(id='chat', cls='flex flex-col')(*children)
 
-def ChatWindow(system=None, history=None, route='/generate', trigger=ctrl_enter, hx_vals=None):
+def ChatWindow(system=None, history=None, route='/generate', trigger=scoped_enter, hx_vals=None):
     if history is None:
         history = []
     system = [ChatBox('system', ChatSystem(system))] if system is not None else []
@@ -126,7 +126,7 @@ def FastHTMLChat(chat):
         Script(src="https://cdn.tailwindcss.com"),
         Script(src='https://cdn.jsdelivr.net/npm/marked/marked.min.js')
     ]
-    app = FastHTML(hdrs=hdrs, ws_hdr=True)
+    app = FastHTML(hdrs=hdrs, exts='ws')
 
     # connect main
     @app.route('/')
