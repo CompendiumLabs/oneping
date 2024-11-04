@@ -145,7 +145,8 @@ class TextualChat(App):
     def __init__(self, chat, **kwargs):
         super().__init__(**kwargs)
         self.chat = chat
-        self.title = f'oneping: {self.chat.provider}'
+        provider = self.chat.kwargs.get('provider', 'local')
+        self.title = f'oneping: {provider}'
 
     def compose(self):
         yield Header(id='header')

@@ -109,11 +109,11 @@ def get_lib_dir():
     return os.path.dirname(__file__)
 
 def ChatCSS():
-    css_path = os.path.join(get_lib_dir(), 'web/fasthtml.css')
+    css_path = os.path.join(get_lib_dir(), 'assets/fasthtml.css')
     return StyleX(css_path)
 
 def ChatJS():
-    js_path = os.path.join(get_lib_dir(), 'web/fasthtml.js')
+    js_path = os.path.join(get_lib_dir(), 'assets/fasthtml.js')
     return ScriptX(js_path)
 
 ##

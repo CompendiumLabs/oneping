@@ -1,0 +1,6 @@
+# Set CORS headers
+Header always set Access-Control-Allow-Origin "https://api.anthropic.com"
+Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, x-api-key, model, anthropic-version, anthropic-beta, anthropic-dangerous-direct-browser-access"
+Header always set Access-Control-Allow-Credentials "true"
+Header always set Access-Control-Max-Age "3600"
