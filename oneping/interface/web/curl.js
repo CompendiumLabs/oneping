@@ -197,11 +197,15 @@ function set_api_key(provider, apiKey) {
     localStorage.setItem(`${provider}-api-key`, apiKey);
 }
 
-function api_key_widget(provider) {
+function clear_api_key(provider) {
+    localStorage.removeItem(`${provider}-api-key`);
+}
+
+function create_api_key_widget() {
     const input = h('input', {
         type: 'text', placeholder: 'API key', style: { flexGrow: 1 }
     });
-    const button = h('button', { textContent: 'Set' });
+    const button = h('button', { textContent: 'Store' });
 
     // create elements
     const outer = h('div', {
@@ -209,47 +213,54 @@ function api_key_widget(provider) {
         style: { display: 'flex', flexDirection: 'row', gap: '0.5em' },
     }, [input, button]);
 
-    // click handler
-    button.onclick = () => {
-        const value = input.value;
-        if (value.length > 0) {
-            set_api_key(provider, value);
-        }
-        input.value = '';
-    }
-
     // return outer
     return outer;
 }
 
-function embed_api_key_widget(provider, args) {
-    let { element, keybind } = args ?? {};
-    element = element ?? document.body;
-    keybind = keybind ?? 'F1';
-
+function api_key_widget(provider) {
     // create api key widget
-    const widget = api_key_widget(provider);
-    widget.style.display = 'none';
-    element.appendChild(widget);
-    const api_input = widget.querySelector('input');
+    const widget = create_api_key_widget();
+    const input = widget.querySelector('input');
+    const button = widget.querySelector('button');
 
-    // keybind handler
-    if (keybind != null) {
-        element.addEventListener('keydown', (event) => {
-            if (event.key === keybind) {
-                if (widget.style.display === 'none') {
-                    widget.style.display = 'flex';
-                    api_input.focus();
-                } else {
-                    widget.style.display = 'none';
-                }
-            }
-        });
+    // state variable
+    let api_key = get_api_key(provider);
+    let is_set = api_key != null;
+
+    // set initial button text
+    if (is_set) {
+        button.textContent = 'Clear';
+        input.value = '*'.repeat(api_key.length);
+        input.disabled = true;
     }
+
+    // click handler
+    button.onclick = () => {
+        if (is_set) {
+            clear_api_key(provider);
+            is_set = false;
+            input.value = '';
+            input.disabled = false;
+            button.textContent = 'Store';
+        } else {
+            const value = input.value;
+            if (value.length > 0) {
+                set_api_key(provider, value);
+                is_set = true;
+                input.value = '*'.repeat(value.length);
+                input.disabled = true;
+                button.textContent = 'Clear';
+
+            }
+        }
+    }
+
+    // return widget
+    return widget;
 }
 
 //
 // exports
 //
 
-export { reply, api_key_widget, get_api_key, set_api_key, embed_api_key_widget, h };
+export { reply, get_api_key, set_api_key, clear_api_key, api_key_widget, h };
