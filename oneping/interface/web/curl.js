@@ -112,10 +112,12 @@ function get_provider(provider) {
 
 async function reply(query, args) {
     let { provider, system, history, prefill, apiKey, max_tokens, port } = args ?? {};
-    provider = get_provider(provider ?? 'local');
     apiKey = apiKey ?? get_api_key(provider);
     max_tokens = max_tokens ?? 1024;
     port = port ?? 8000;
+
+    // get provider settings
+    provider = get_provider(provider ?? 'local');
 
     // check authorization
     if (provider.authorize != null && apiKey == null) {
@@ -220,8 +222,34 @@ function api_key_widget(provider) {
     return outer;
 }
 
+function embed_api_key_widget(provider, args) {
+    let { element, keybind } = args ?? {};
+    element = element ?? document.body;
+    keybind = keybind ?? 'F1';
+
+    // create api key widget
+    const widget = api_key_widget(provider);
+    widget.style.display = 'none';
+    element.appendChild(widget);
+    const api_input = widget.querySelector('input');
+
+    // keybind handler
+    if (keybind != null) {
+        element.addEventListener('keydown', (event) => {
+            if (event.key === keybind) {
+                if (widget.style.display === 'none') {
+                    widget.style.display = 'flex';
+                    api_input.focus();
+                } else {
+                    widget.style.display = 'none';
+                }
+            }
+        });
+    }
+}
+
 //
 // exports
 //
 
-export { reply, api_key_widget, get_api_key, set_api_key, h };
+export { reply, api_key_widget, get_api_key, set_api_key, embed_api_key_widget, h };

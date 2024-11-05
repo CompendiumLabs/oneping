@@ -34,7 +34,6 @@ const widget = api_key_widget(provider);
 document.body.appendChild(widget);
 widget.style.display = 'none';
 const api_input = widget.querySelector('input');
-const api_button = widget.querySelector('button');
 
 // handle keypress
 query.addEventListener('keypress', async (event) => {
@@ -44,7 +43,6 @@ query.addEventListener('keypress', async (event) => {
 
         // get query value
         const query_value = query.value;
-        console.log(`query: ${query_value}`);
 
         // insert query into chat
         const sent = make_message('user', query_value);
@@ -58,7 +56,6 @@ query.addEventListener('keypress', async (event) => {
 
         // get response
         const response = await reply(query_value, { provider, system: system_prompt, apiKey: api_key });
-        console.log(response);
 
         // add response to chat
         const message = make_message('assistant', response);
