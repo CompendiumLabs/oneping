@@ -161,7 +161,7 @@ function h(tag, args, children) {
 
     // add classes
     if (cls != null) {
-        cls = Array.isArray(cls) ? cls : [cls];
+        cls = Array.isArray(cls) ? cls : cls.split(' ');
         elem.classList.add(...cls);
     }
 
@@ -203,7 +203,7 @@ function clear_api_key(provider) {
 
 function create_api_key_widget() {
     const input = h('input', {
-        type: 'text', placeholder: 'API key', style: { flexGrow: 1 }
+        type: 'text', placeholder: 'Enter your API key', style: { flexGrow: 1 }
     });
     const button = h('button', { textContent: 'Store' });
 
