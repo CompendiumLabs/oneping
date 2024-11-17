@@ -1,5 +1,6 @@
 html {
     font-family: 'Cantarell', sans-serif;
+    font-size: 18px;
 }
 
 body {
@@ -24,7 +25,7 @@ body {
 }
 
 #title {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
 }
 
@@ -78,7 +79,7 @@ body {
 .message > .timestamp {
     background-color: #f3f4f6;
     border-right: 1px solid #cbd5e1;
-    padding: 5px;
+    padding: 10px;
     min-width: 110px;
     text-align: center;
     font-style: italic;
@@ -86,5 +87,34 @@ body {
 
 .message > .content {
     flex-grow: 1;
-    padding: 5px;
+    padding: 10px;
+}
+
+/* api key widget */
+
+#api-key-widget {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 400px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+#api-key-widget input {
+    font-family: monospace;
+    font-size: 18px;
+}
+
+#api-key-widget button {
+    font-family: sans-serif;
+    font-size: 18px;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+}
+
+#api-key-widget input {
+    border: none;
+    outline: none;
 }

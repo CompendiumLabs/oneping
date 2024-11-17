@@ -120,7 +120,7 @@ class AudioRecorder {
 // requests
 //
 
-const DEFAULT_MODEL = 'whisper-large-v3-turbo';
+const DEFAULT_MODEL = 'whisper-1';
 
 // audio should be a Blob object
 async function transcribe(audio, args) {
@@ -128,27 +128,23 @@ async function transcribe(audio, args) {
     port = port ?? 8000;
     url = url ?? `http://localhost:${port}/inference`;
 
-    // if going proprietary
+    // baseline headers and payload
     const headers = {};
+    const body = new FormData();
+    body.append('file', audio, 'audio.ogg');
+    for (const [key, value] of Object.entries(extra)) {
+        body.append(key, value);
+    }
+
+    // if going proprietary
     if (apiKey != null) {
         headers['Authorization'] = `Bearer ${apiKey}`;
-        headers['model'] = model ?? DEFAULT_MODEL;
+        body.append('model', model ?? DEFAULT_MODEL);
     }
 
-    // make form data
-    const formData = new FormData();
-    formData.append('file', audio, 'audio.ogx');
-    for (const [key, value] of Object.entries(extra)) {
-        formData.append(key, value);
-    }
-
-    // make request
-    const response = await fetch(url, {
-        method: 'POST', headers, body: formData
-    });
+    // make request and return text
+    const response = await fetch(url, { method: 'POST', headers, body });
     const data = await response.json();
-
-    // return text
     return data.text ?? data.error;
 }
 

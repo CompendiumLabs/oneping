@@ -66,7 +66,6 @@ query.addEventListener('keypress', async (event) => {
 // handle F1 login
 document.addEventListener('keydown', (event) => {
     if (event.key === 'F1') {
-        // toggle visibility
         const display = widget.style.display;
         if (display === 'none') {
             widget.style.display = 'flex';

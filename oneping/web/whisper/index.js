@@ -1,11 +1,22 @@
 // whisper
 
 import { AudioRecorder, transcribe } from '../audio.js';
+import { api_key_widget, get_api_key } from '../curl.js';
 
 // constants
-const API_ARGS = {
-    port: 8123,
-};
+const LOCAL_PORT = 8123;
+const OPENAI_URL = 'https://api.openai.com/v1/audio/transcriptions';
+
+// url arguments
+const url_args = new URLSearchParams(window.location.search);
+const openai = url_args.get('openai') != null;
+function get_trans_args() {
+    if (openai) {
+        return { url: OPENAI_URL, apiKey: get_api_key('openai') };
+    } else {
+        return { port: LOCAL_PORT };
+    }
+}
 
 // init objects
 const recorder = new AudioRecorder();
@@ -61,7 +72,7 @@ document.addEventListener('keydown', async (event) => {
         if (audio != null) {
             // transcribe audio
             circle.classList.add('transcribing');
-            const text = await transcribe(audio, API_ARGS);
+            const text = await transcribe(audio, get_trans_args());
             console.log(`transcribe: ${text}`);
             circle.classList.remove('transcribing');
 
@@ -82,3 +93,22 @@ document.addEventListener('keyup', async (event) => {
     }
 });
 
+// create api key widget
+const widget = api_key_widget('openai');
+document.body.appendChild(widget);
+widget.style.display = 'none';
+const api_input = widget.querySelector('input');
+
+// handle F1 login
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'F1') {
+        const display = widget.style.display;
+        if (display === 'none') {
+            widget.style.display = 'flex';
+            api_input.focus();
+        } else {
+            widget.style.display = 'none';
+            document.body.focus();
+        }
+    }
+});
