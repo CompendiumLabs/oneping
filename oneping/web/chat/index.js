@@ -1,6 +1,7 @@
 // client-side chat interface
 
-import { reply, api_key_widget, get_api_key, h } from '../curl.js';
+import { reply } from '../curl.js';
+import { api_key_widget, get_api_key, h } from '../storage.js';
 
 //
 // constants
@@ -31,9 +32,8 @@ const query = document.querySelector('#query');
 
 // create api key widget
 const widget = api_key_widget(provider);
-document.body.appendChild(widget);
 widget.style.display = 'none';
-const api_input = widget.querySelector('input');
+document.body.appendChild(widget);
 
 // handle keypress
 query.addEventListener('keypress', async (event) => {
@@ -64,6 +64,7 @@ query.addEventListener('keypress', async (event) => {
 });
 
 // handle F1 login
+const api_input = widget.querySelector('input');
 document.addEventListener('keydown', (event) => {
     if (event.key === 'F1') {
         const display = widget.style.display;

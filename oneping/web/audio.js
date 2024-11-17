@@ -121,12 +121,13 @@ class AudioRecorder {
 //
 
 const DEFAULT_MODEL = 'whisper-1';
+const OPENAI_URL = 'https://api.openai.com/v1/audio/transcriptions';
+const LOCAL_URL = 'http://localhost:8000/inference';
 
 // audio should be a Blob object
 async function transcribe(audio, args) {
-    let { url, port, apiKey, model, ...extra } = args ?? {};
-    port = port ?? 8000;
-    url = url ?? `http://localhost:${port}/inference`;
+    let { url, apiKey, model, ...extra } = args ?? {};
+    url = url ?? LOCAL_URL;
 
     // baseline headers and payload
     const headers = {};
@@ -136,7 +137,7 @@ async function transcribe(audio, args) {
         body.append(key, value);
     }
 
-    // if going proprietary
+    // going proprietary
     if (apiKey != null) {
         headers['Authorization'] = `Bearer ${apiKey}`;
         body.append('model', model ?? DEFAULT_MODEL);
@@ -148,4 +149,4 @@ async function transcribe(audio, args) {
     return data.text ?? data.error;
 }
 
-export { AudioRecorder, waitUntil, waitThen, transcribe };
+export { AudioRecorder, waitUntil, waitThen, transcribe, OPENAI_URL, LOCAL_URL };

@@ -1,22 +1,7 @@
 // whisper
 
-import { AudioRecorder, transcribe } from '../audio.js';
-import { api_key_widget, get_api_key } from '../curl.js';
-
-// constants
-const LOCAL_PORT = 8123;
-const OPENAI_URL = 'https://api.openai.com/v1/audio/transcriptions';
-
-// url arguments
-const url_args = new URLSearchParams(window.location.search);
-const openai = url_args.get('openai') != null;
-function get_trans_args() {
-    if (openai) {
-        return { url: OPENAI_URL, apiKey: get_api_key('openai') };
-    } else {
-        return { port: LOCAL_PORT };
-    }
-}
+import { AudioRecorder, transcribe, OPENAI_URL, LOCAL_URL } from '../audio.js';
+import { api_key_widget, get_api_key, h } from '../storage.js';
 
 // init objects
 const recorder = new AudioRecorder();
@@ -27,33 +12,23 @@ const circle = document.getElementById('status');
 
 // make a new message box
 function makeMessage(timestamp, text) {
-    const time = document.createElement('span');
-    time.textContent = timestamp;
-    time.classList.add(
+    const time = h('span', { cls: [
         'timestamp', 'italic', 'w-[110px]', 'min-w-[110px]', 'text-center',
         'py-1', 'px-2', 'border-r', 'border-gray-300'
-    );
-
-    const content = document.createElement('span');
-    content.textContent = text;
-    content.classList.add('content', 'py-1', 'px-2');
-
-    const message = document.createElement('div');
-    message.classList.add(
+    ] }, timestamp);
+    const content = h('span', { cls: ['content', 'py-1', 'px-2'] }, text);
+    const message = h('div', { cls: [
         'message', 'flex', 'flex-row', 'border', 'rounded',
         'border-gray-300', 'bg-gray-100'
-    );
-    message.appendChild(time);
-    message.appendChild(content);
+    ] }, [time, content]);
     return message;
 }
 
-function downloadAudio(audio) {
-    const url = URL.createObjectURL(audio);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'audio.wav';
-    a.click();
+// get transcription arguments
+function get_trans_args() {
+    const host = localStorage.getItem('whisper-host');
+    const api_key = get_api_key('openai');
+    return { url: host, apiKey: api_key };
 }
 
 // record action
@@ -93,22 +68,59 @@ document.addEventListener('keyup', async (event) => {
     }
 });
 
+//
+// configuration
+//
+
+// get ui elements
+const control = document.getElementById('control');
+const api_key = control.querySelector('#api-key > .control-input');
+const host_input = control.querySelector('#host-input');
+const host_button = control.querySelector('#host-button');
+
 // create api key widget
 const widget = api_key_widget('openai');
-document.body.appendChild(widget);
-widget.style.display = 'none';
-const api_input = widget.querySelector('input');
+api_key.appendChild(widget);
 
-// handle F1 login
+// set host from storage
+const host_initial = localStorage.getItem('whisper-host');
+host_input.value = host_initial ?? OPENAI_URL;
+if (host_initial == OPENAI_URL) {
+    host_button.textContent = 'Local';
+} else {
+    host_button.textContent = 'OpenAI';
+}
+
+// handle F1 toggle
 document.addEventListener('keydown', (event) => {
     if (event.key === 'F1') {
-        const display = widget.style.display;
+        const display = control.style.display;
         if (display === 'none') {
-            widget.style.display = 'flex';
-            api_input.focus();
+            control.style.display = 'flex';
+            api_key.focus();
         } else {
-            widget.style.display = 'none';
+            control.style.display = 'none';
             document.body.focus();
         }
     }
+});
+
+// handle set openai
+host_button.addEventListener('click', () => {
+    const label = host_button.textContent;
+    if (label == 'OpenAI') {
+        host_input.value = OPENAI_URL;
+        host_button.textContent = 'Local';
+    } else {
+        host_input.value = LOCAL_URL;
+        host_button.textContent = 'OpenAI';
+    }
+    const host = host_input.value;
+    localStorage.setItem('whisper-host', host);
+});
+
+// handle host input
+host_input.addEventListener('input', () => {
+    const host = host_input.value;
+    localStorage.setItem('whisper-host', host);
 });
