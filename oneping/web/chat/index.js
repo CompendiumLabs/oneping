@@ -1,6 +1,6 @@
 // client-side chat interface
 
-import { reply, api_key_widget, get_api_key, h } from './curl.js';
+import { reply, api_key_widget, get_api_key, h } from '../curl.js';
 
 //
 // constants

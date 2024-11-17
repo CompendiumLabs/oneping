@@ -1,0 +1,90 @@
+html {
+    font-family: 'Cantarell', sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#outer {
+    display: flex;
+    flex-direction: column;
+    width: 650px;
+    padding: 20px;
+    height: 100%;
+    gap: 20px;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+#title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#status {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#output {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+/* record action */
+
+#status > svg {
+    stroke: none;
+    fill: #3b82f6;
+}
+
+#status.recording > svg {
+    fill: #ef4444;
+}
+
+#status.transcribing > svg {
+    fill: #9ca3af;
+}
+
+/* hide scrollbar */
+
+#output {
+    scrollbar-width: none;
+}
+
+#output::-webkit-scrollbar {
+    width: 0;
+}
+
+/* message */
+
+.message {
+    display: flex;
+    flex-direction: row;
+    border-radius: 3px;
+    border: 1px solid #cbd5e1;
+}
+
+.message > .timestamp {
+    background-color: #f3f4f6;
+    border-right: 1px solid #cbd5e1;
+    padding: 5px;
+    min-width: 110px;
+    text-align: center;
+    font-style: italic;
+}
+
+.message > .content {
+    flex-grow: 1;
+    padding: 5px;
+}

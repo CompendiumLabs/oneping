@@ -1,6 +1,7 @@
 // audio recording and transcription
 
 // audio constants
+const DEFAULT_FORMAT = 'audio/ogg; codecs=opus';
 const DEFAULT_MAX_LENGTH = 60;
 const DEFAULT_ARGS = {
     sampleRate: 16000,
@@ -34,16 +35,15 @@ async function blobToUint8Array(blob) {
 }
 
 // record media stream to uint8 array
-function recordMediaStream(recorder) {
+function recordMediaStream(recorder, format) {
     return new Promise((resolve, reject) => {
         const chunks = [];
         recorder.ondataavailable = (event) => {
             chunks.push(event.data);
         };
         recorder.onstop = async (event) => {
-            const blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-            const buf = await blobToUint8Array(blob);
-            resolve(buf);
+            const blob = new Blob(chunks, { type : format });
+            resolve(blob);
         };
         recorder.start();
     });
@@ -74,39 +74,82 @@ class AudioRecorder {
 
     // record up to kMaxRecording_s seconds of audio from the microphone check if doRecording
     // is false every 1000 ms and stop recording if so update progress information
-    async startRecording(max_length=DEFAULT_MAX_LENGTH) {
+    async startRecording(args) {
+        let { decode, max_length, format } = args ?? {};
+        decode = decode ?? true;
+        max_length = max_length ?? DEFAULT_MAX_LENGTH;
+        format = format ?? DEFAULT_FORMAT;
+
+        // init context on first use
         if (this.context == null) {
             this.initContext();
         }
 
         // record media stream to array of uint8 data
         const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
-        const recorder = new MediaRecorder(stream);
+        const recorder = new MediaRecorder(stream, { mimeType: format });
 
         // start recording
         const startTime = Date.now();
         this.doRecording = true;
 
         // set up recording and termination
-        const recording = recordMediaStream(recorder);
+        const recording = recordMediaStream(recorder, format);
         const terminate = waitThen(
             () => !this.doRecording || getElapsedTime(startTime) > max_length,
             () => recorder.stop()
         );
-        const [buffer, _] = await Promise.all([recording, terminate]);
+        const [blob, _] = await Promise.all([recording, terminate]);
 
         // end recording
         this.doRecording = false;
         console.log(`recorded for ${getElapsedTime(startTime).toFixed(2)} seconds`);
 
-        // decode audio data
-        const audioBuffer = await this.context.decodeAudioData(buffer.buffer);
-        const audio = audioBuffer.getChannelData(0);
-        console.log(`recorded audio size: ${audio.length}`);
-
-        // return audio
-        return audio;
+        // maybe decode audio data
+        if (decode) {
+            const array = await blobToUint8Array(blob);
+            const buffer = await this.context.decodeAudioData(array.buffer);
+            return buffer.getChannelData(0);
+        } else {
+            return blob;
+        }
     }
 }
 
-export { AudioRecorder };
+//
+// requests
+//
+
+const DEFAULT_MODEL = 'whisper-large-v3-turbo';
+
+// audio should be a Blob object
+async function transcribe(audio, args) {
+    let { url, port, apiKey, model, ...extra } = args ?? {};
+    port = port ?? 8000;
+    url = url ?? `http://localhost:${port}/inference`;
+
+    // if going proprietary
+    const headers = {};
+    if (apiKey != null) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers['model'] = model ?? DEFAULT_MODEL;
+    }
+
+    // make form data
+    const formData = new FormData();
+    formData.append('file', audio, 'audio.ogx');
+    for (const [key, value] of Object.entries(extra)) {
+        formData.append(key, value);
+    }
+
+    // make request
+    const response = await fetch(url, {
+        method: 'POST', headers, body: formData
+    });
+    const data = await response.json();
+
+    // return text
+    return data.text ?? data.error;
+}
+
+export { AudioRecorder, waitUntil, waitThen, transcribe };
