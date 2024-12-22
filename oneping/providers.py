@@ -121,6 +121,9 @@ def stream_anthropic_native(chunk):
 def embed_openai(reply):
     return reply['data'][0]['embedding']
 
+def transcribe_openai(audio):
+    return audio.text
+
 ##
 ## known llm providers
 ##

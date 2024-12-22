@@ -13,6 +13,7 @@ from .native import (
     stream as stream_native,
     stream_async as stream_async_native,
     embed as embed_native,
+    transcribe as transcribe_native,
 )
 
 def reply(query, provider='local', native=False, **kwargs):
@@ -44,3 +45,9 @@ def embed(text, provider='local', native=False, **kwargs):
         return embed_native(text, provider, **kwargs)
     else:
         return embed_url(text, provider=provider, **kwargs)
+
+def transcribe(audio, provider='local', native=False, **kwargs):
+    if native:
+        return transcribe_native(audio, provider, **kwargs)
+    else:
+        raise Exception('Transcribing is not supported for non-native providers')

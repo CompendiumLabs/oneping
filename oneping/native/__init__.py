@@ -40,6 +40,7 @@ try:
         reply_async as reply_async_openai,
         stream_async as stream_async_openai,
         embed as embed_openai,
+        transcribe as transcribe_openai,
     )
 except ImportError:
     dummy_openai = DummyFunction('openai')
@@ -48,7 +49,7 @@ except ImportError:
     reply_async_openai = dummy_openai
     stream_async_openai = dummy_openai
     embed_openai = dummy_openai
-
+    transcribe_openai = dummy_openai
 ##
 ## fireworks
 ##
@@ -95,6 +96,7 @@ try:
         reply_async as reply_async_azure,
         stream as stream_azure,
         stream_async as stream_async_azure,
+        transcribe as transcribe_azure,
     )
 except ImportError:
     dummy_azure = DummyFunction('azure')
@@ -102,6 +104,7 @@ except ImportError:
     reply_async_azure = dummy_azure
     stream_azure = dummy_azure
     stream_async_azure = dummy_azure
+    transcribe_azure = dummy_azure
 
 ##
 ## router
@@ -178,3 +181,13 @@ def embed(text, provider, **kwargs):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} does not support embeddings')
+
+def transcribe(audio, provider, **kwargs):
+    if provider == 'openai':
+        return transcribe_openai(audio, **kwargs)
+    elif provider == 'azure':
+        return transcribe_azure(audio, **kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} does not support transcribing')
