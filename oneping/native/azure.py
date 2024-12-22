@@ -1,6 +1,6 @@
-# openai interfaces
+# azure interfaces
 
-from openai import AzureOpenAI
+from openai import AzureOpenAI, AsyncAzureOpenAI
 
 from ..providers import (
     DEFAULT_SYSTEM, OPENAI_MODEL, AZURE_API_VERSION, payload_openai,
