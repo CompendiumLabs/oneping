@@ -22,6 +22,16 @@ FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p1-70b-instruct'
 GROQ_MODEL = 'llama-3.1-70b-versatile'
 
 ##
+## options
+##
+
+AZURE_API_VERSION = '2024-10-21'
+ANTHROPIC_HEADERS = {
+    'anthropic-version': '2023-06-01',
+    'anthropic-beta': 'prompt-caching-2024-07-31',
+}
+
+##
 ## authorization headers
 ##
 
@@ -143,10 +153,7 @@ LLM_PROVIDERS = {
         'stream': stream_anthropic,
         'api_key_env': 'ANTHROPIC_API_KEY',
         'model': ANTHROPIC_MODEL,
-        'headers': {
-            'anthropic-version': '2023-06-01',
-            'anthropic-beta': 'prompt-caching-2024-07-31',
-        },
+        'headers': ANTHROPIC_HEADERS,
     },
     'fireworks': {
         'url': 'https://api.fireworks.ai/inference/v1/chat/completions',

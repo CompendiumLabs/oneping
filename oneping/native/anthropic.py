@@ -3,20 +3,20 @@
 import anthropic
 
 from ..providers import (
-    DEFAULT_SYSTEM, DEFAULT_MAX_TOKENS, ANTHROPIC_MODEL,
+    DEFAULT_SYSTEM, DEFAULT_MAX_TOKENS, ANTHROPIC_MODEL, ANTHROPIC_HEADERS,
     payload_anthropic, response_anthropic_native, stream_anthropic_native
 )
 
 def reply(
     query, history=None, prefill=None, system=None, api_key=None, model=None,
-    max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    max_tokens=DEFAULT_MAX_TOKENS, headers=ANTHROPIC_HEADERS, **kwargs
 ):
     # handle unspecified defaults
     system = DEFAULT_SYSTEM if system is None else system
     model = ANTHROPIC_MODEL if model is None else model
 
     # construct client and payload
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.Anthropic(api_key=api_key, default_headers=headers)
     payload = payload_anthropic(query, system=system, history=history, prefill=prefill)
 
     # get response and convert to text
@@ -26,14 +26,14 @@ def reply(
 
 async def reply_async(
     query, history=None, prefill=None, system=None, api_key=None, model=None,
-    max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    max_tokens=DEFAULT_MAX_TOKENS, headers=ANTHROPIC_HEADERS, **kwargs
 ):
     # handle unspecified defaults
     system = DEFAULT_SYSTEM if system is None else system
     model = ANTHROPIC_MODEL if model is None else model
 
     # construct client and payload
-    client = anthropic.AsyncAnthropic(api_key=api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key, default_headers=headers)
     payload = payload_anthropic(query, system=system, history=history, prefill=prefill)
 
     # get response and convert to text
@@ -43,14 +43,14 @@ async def reply_async(
 
 def stream(
     query, history=None, prefill=None, system=None, api_key=None, model=None,
-    max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    max_tokens=DEFAULT_MAX_TOKENS, headers=ANTHROPIC_HEADERS, **kwargs
 ):
     # handle unspecified defaults
     system = DEFAULT_SYSTEM if system is None else system
     model = ANTHROPIC_MODEL if model is None else model
 
     # construct client and payload
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.Anthropic(api_key=api_key, default_headers=headers)
     payload = payload_anthropic(query, system=system, history=history, prefill=prefill)
 
     # yield prefill if any
@@ -64,14 +64,14 @@ def stream(
 
 async def stream_async(
     query, history=None, prefill=None, system=None, api_key=None, model=None,
-    max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    max_tokens=DEFAULT_MAX_TOKENS, headers=ANTHROPIC_HEADERS, **kwargs
 ):
     # handle unspecified defaults
     system = DEFAULT_SYSTEM if system is None else system
     model = ANTHROPIC_MODEL if model is None else model
 
     # construct client and payload
-    client = anthropic.AsyncAnthropic(api_key=api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key, default_headers=headers)
     payload = payload_anthropic(query, system=system, history=history, prefill=prefill)
 
     # yield prefill if any

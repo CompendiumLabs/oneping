@@ -86,6 +86,24 @@ except ImportError:
     stream_async_groq = dummy_groq
 
 ##
+## azure
+##
+
+try:
+    from .azure import (
+        reply as reply_azure,
+        reply_async as reply_async_azure,
+        stream as stream_azure,
+        stream_async as stream_async_azure,
+    )
+except ImportError:
+    dummy_azure = DummyFunction('azure')
+    reply_azure = dummy_azure
+    reply_async_azure = dummy_azure
+    stream_azure = dummy_azure
+    stream_async_azure = dummy_azure
+
+##
 ## router
 ##
 
@@ -98,6 +116,8 @@ def reply(query, provider, **kwargs):
         return reply_fireworks(query, **kwargs)
     elif provider == 'groq':
         return reply_groq(query, **kwargs)
+    elif provider == 'azure':
+        return reply_azure(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -112,6 +132,8 @@ def reply_async(query, provider, **kwargs):
         return reply_async_fireworks(query, **kwargs)
     elif provider == 'groq':
         return reply_async_groq(query, **kwargs)
+    elif provider == 'azure':
+        return reply_async_azure(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -126,6 +148,8 @@ def stream(query, provider, **kwargs):
         return stream_fireworks(query, **kwargs)
     elif provider == 'groq':
         return stream_groq(query, **kwargs)
+    elif provider == 'azure':
+        return stream_azure(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -140,6 +164,8 @@ def stream_async(query, provider, **kwargs):
         return stream_async_fireworks(query, **kwargs)
     elif provider == 'groq':
         return stream_async_groq(query, **kwargs)
+    elif provider == 'azure':
+        return stream_async_azure(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
