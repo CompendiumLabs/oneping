@@ -3,7 +3,7 @@
 from openai import AzureOpenAI
 
 from ..providers import (
-    DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, payload_openai,
+    DEFAULT_SYSTEM, OPENAI_MODEL, AZURE_API_VERSION, payload_openai,
     response_openai_native, stream_openai_native, transcribe_openai
 )
 
