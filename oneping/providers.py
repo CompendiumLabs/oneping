@@ -17,9 +17,20 @@ DEFAULT_MAX_TOKENS = 1024
 
 OPENAI_MODEL = 'gpt-4o'
 OPENAI_EMBED = 'text-embedding-3-small'
+OPENAI_WHISPER = 'whisper-1'
 ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p1-70b-instruct'
 GROQ_MODEL = 'llama-3.1-70b-versatile'
+
+##
+## environment key names
+##
+
+OPENAI_KEYENV = 'OPENAI_API_KEY'
+ANTHROPIC_KEYENV = 'ANTHROPIC_API_KEY'
+FIREWORKS_KEYENV = 'FIREWORKS_API_KEY'
+GROQ_KEYENV = 'GROQ_API_KEY'
+AZURE_KEYENV = 'AZURE_OPENAI_API_KEY'
 
 ##
 ## options
@@ -145,7 +156,7 @@ LLM_PROVIDERS = {
     'openai': {
         'url': 'https://api.openai.com/v1/chat/completions',
         'max_tokens_name': 'max_completion_tokens',
-        'api_key_env': 'OPENAI_API_KEY',
+        'api_key_env': OPENAI_KEYENV,
         'model': OPENAI_MODEL,
     },
     'anthropic': {
@@ -154,18 +165,18 @@ LLM_PROVIDERS = {
         'authorize': authorize_anthropic,
         'response': response_anthropic,
         'stream': stream_anthropic,
-        'api_key_env': 'ANTHROPIC_API_KEY',
+        'api_key_env': ANTHROPIC_KEYENV,
         'model': ANTHROPIC_MODEL,
         'headers': ANTHROPIC_HEADERS,
     },
     'fireworks': {
         'url': 'https://api.fireworks.ai/inference/v1/chat/completions',
-        'api_key_env': 'FIREWORKS_API_KEY',
+        'api_key_env': FIREWORKS_KEYENV,
         'model': FIREWORKS_MODEL,
     },
     'groq': {
         'url': 'https://api.groq.com/openai/v1/chat/completions',
-        'api_key_env': 'GROQ_API_KEY',
+        'api_key_env': GROQ_KEYENV,
         'model': GROQ_MODEL,
     },
 }
