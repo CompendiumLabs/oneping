@@ -17,6 +17,7 @@ class DummyFunction:
 
 try:
     from .anthropic import (
+        make_client as make_client_anthropic,
         reply as reply_anthropic,
         stream as stream_anthropic,
         reply_async as reply_async_anthropic,
@@ -24,6 +25,7 @@ try:
     )
 except ImportError:
     dummy_anthropic = DummyFunction('anthropic')
+    make_client_anthropic = dummy_anthropic
     reply_anthropic = dummy_anthropic
     stream_anthropic = dummy_anthropic
     reply_async_anthropic = dummy_anthropic
@@ -35,6 +37,7 @@ except ImportError:
 
 try:
     from .openai import (
+        make_client as make_client_openai,
         reply as reply_openai,
         stream as stream_openai,
         reply_async as reply_async_openai,
@@ -44,6 +47,7 @@ try:
     )
 except ImportError:
     dummy_openai = DummyFunction('openai')
+    make_client_openai = dummy_openai
     reply_openai = dummy_openai
     stream_openai = dummy_openai
     reply_async_openai = dummy_openai
@@ -56,6 +60,7 @@ except ImportError:
 
 try:
     from .fireworks import (
+        make_client as make_client_fireworks,
         reply as reply_fireworks,
         stream as stream_fireworks,
         reply_async as reply_async_fireworks,
@@ -63,6 +68,7 @@ try:
     )
 except ImportError:
     dummy_fireworks = DummyFunction('fireworks-ai')
+    make_client_fireworks = dummy_fireworks
     reply_fireworks = dummy_fireworks
     stream_fireworks = dummy_fireworks
     reply_async_fireworks = dummy_fireworks
@@ -74,6 +80,7 @@ except ImportError:
 
 try:
     from .groq import (
+        make_client as make_client_groq,
         reply as reply_groq,
         reply_async as reply_async_groq,
         stream as stream_groq,
@@ -81,6 +88,7 @@ try:
     )
 except ImportError:
     dummy_groq = DummyFunction('groq')
+    make_client_groq = dummy_groq
     reply_groq = dummy_groq
     reply_async_groq = dummy_groq
     stream_groq = dummy_groq
@@ -92,23 +100,43 @@ except ImportError:
 
 try:
     from .azure import (
+        make_client as make_client_azure,
         reply as reply_azure,
         reply_async as reply_async_azure,
         stream as stream_azure,
         stream_async as stream_async_azure,
+        embed as embed_azure,
         transcribe as transcribe_azure,
     )
-except ImportError:
-    dummy_azure = DummyFunction('azure')
+except ImportError as e:
+    dummy_azure = DummyFunction('openai')
+    make_client_azure = dummy_azure
     reply_azure = dummy_azure
     reply_async_azure = dummy_azure
     stream_azure = dummy_azure
     stream_async_azure = dummy_azure
+    embed_azure = dummy_azure
     transcribe_azure = dummy_azure
 
 ##
 ## router
 ##
+
+def make_client(provider, **kwargs):
+    if provider == 'openai':
+        return make_client_openai(**kwargs)
+    elif provider == 'anthropic':
+        return make_client_anthropic(**kwargs)
+    elif provider == 'fireworks':
+        return make_client_fireworks(**kwargs)
+    elif provider == 'groq':
+        return make_client_groq(**kwargs)
+    elif provider == 'azure':
+        return make_client_azure(**kwargs)
+    elif provider == 'local':
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} not found')
 
 def reply(query, provider, **kwargs):
     if provider == 'openai':
@@ -177,6 +205,8 @@ def stream_async(query, provider, **kwargs):
 def embed(text, provider, **kwargs):
     if provider == 'openai':
         return embed_openai(text, **kwargs)
+    elif provider == 'azure':
+        return embed_azure(text, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
