@@ -41,7 +41,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
         model: str | None = None
         system: str | None = None
         prefill: str | None = None
-        prediction: str | None = None
+        prediction: dict[str, str] | None = None
         max_tokens: int | None = None
         history: list[dict[str, str]] | None = None
 
@@ -60,7 +60,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     async def chat(genreq: GenerateRequest):
         data = genreq.model_dump(exclude_none=True)
         patch = patch_payload(data)
-        if genreq.stream:
+        if patch.get('stream', False):
             ret = stream_api(**kwargs, **patch)
             return StreamingResponse(ret, media_type='text/plain')
         else:
