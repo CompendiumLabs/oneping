@@ -60,7 +60,7 @@ def authorize_anthropic(api_key):
 ## message payloads
 ##
 
-def payload_openai(query=None, system=None, prefill=None, history=None):
+def payload_openai(query=None, system=None, prefill=None, prediction=None, history=None):
     if system is not None:
         messages = [{'role': 'system', 'content': system}]
     else:
@@ -71,11 +71,12 @@ def payload_openai(query=None, system=None, prefill=None, history=None):
         messages.append({'role': 'user', 'content': query})
     if prefill is not None:
         messages.append({'role': 'assistant', 'content': prefill})
-    return {
-        'messages': messages,
-    }
+    payload = {'messages': messages}
+    if prediction is not None:
+        payload['prediction'] = {'type': 'content', 'content': prediction}
+    return payload
 
-def payload_anthropic(query=None, system=None, prefill=None, history=None):
+def payload_anthropic(query=None, system=None, prefill=None, prediction=None, history=None):
     if type(history) is list:
         messages = [*history]
     else:

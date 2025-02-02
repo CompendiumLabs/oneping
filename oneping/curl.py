@@ -59,8 +59,8 @@ def prepare_model(prov, model=None):
     return {'model': model} if model is not None else {}
 
 def prepare_request(
-    query, provider='local', system=None, prefill=None, history=None, url=None,
-    port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    query, provider='local', system=None, prefill=None, prediction=None, history=None,
+    url=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider
     prov = get_provider(provider)
@@ -81,7 +81,9 @@ def prepare_request(
     payload_model = prepare_model(prov, model=model)
 
     # get message payload
-    payload_message = prov['payload'](query=query, system=system, prefill=prefill, history=history)
+    payload_message = prov['payload'](
+        query=query, system=system, prefill=prefill, prediction=prediction, history=history
+    )
 
     # base payload
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
@@ -105,6 +107,7 @@ def reply(query, provider='local', history=None, prefill=None, **kwargs):
     )
 
     # request response and return
+    print(url, headers, payload)
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
 

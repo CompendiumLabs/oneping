@@ -3,7 +3,7 @@ import fire
 
 from .utils import streamer
 from .api import reply, stream, embed
-from .server import start as start_server
+from .server import start_llama_cpp, start_router
 
 def get_query(query):
     if query is None:
@@ -41,7 +41,10 @@ class ChatCLI:
         main_fasthtml(**kwargs)
 
     def server(self, model, **kwargs):
-        start_server(model, **kwargs)
+        start_llama_cpp(model, **kwargs)
+
+    def router(self, **kwargs):
+        start_router(**kwargs)
 
 def main():
     fire.Fire(ChatCLI)
