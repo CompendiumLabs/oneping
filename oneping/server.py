@@ -16,15 +16,15 @@ def start_llama_cpp(model, n_gpu_layers=-1, **kwargs):
     cmds = ['python', '-m', 'llama_cpp.server', *opts]
     subprocess.run([str(x) for x in cmds])
 
+# map messages back into history for rebroadcasting
 # this accepts model = provider/model like openrouter
-def patch_model(data):
+def patch_payload(data):
     if 'provider' not in data and 'model' in data:
         if '/' in (model := data.pop('model')):
-            provider, model = model.split('/', maxsplit=1)
-            return {**data, 'provider': provider, 'model': model}
+            data['provider'], data['model'] = model.split('/', maxsplit=1)
         else:
-            return {**data, 'provider': model}
-    raise ValueError(f'Invalid provider/model specified')
+            data['provider'] = model
+    return data
 
 def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGINS, **kwargs):
     import uvicorn
@@ -59,12 +59,13 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     @app.post('/chat')
     async def chat(genreq: GenerateRequest):
         data = genreq.model_dump(exclude_none=True)
-        patch = patch_model(data)
+        patch = patch_payload(data)
         if genreq.stream:
-            resp = stream_api(**kwargs, **patch)
-            return StreamingResponse(resp, media_type='text/plain')
+            ret = stream_api(**kwargs, **patch)
+            return StreamingResponse(ret, media_type='text/plain')
         else:
-            resp = reply_api(**kwargs, **patch)
-            return PlainTextResponse(resp)
+            ret = reply_api(**kwargs, **patch)
+            text = ret[1] if type(ret) is tuple else ret
+            return PlainTextResponse(text)
 
     uvicorn.run(app, host=host, port=port)

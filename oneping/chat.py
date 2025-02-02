@@ -18,18 +18,30 @@ class Chat:
 
     def reply(self, query, **kwargs):
         # get full history and text
-        self.history, text = reply(
+        text = reply(
             query, system=self.system, history=self.history, **self.kwargs, **kwargs
         )
+
+        # update history
+        self.history += [
+            {'role': 'user'     , 'content': query},
+            {'role': 'assistant', 'content': text },
+        ]
 
         # return text
         return text
 
     async def reply_async(self, query, **kwargs):
         # get full history and text
-        self.history, text = await reply_async(
+        text = await reply_async(
             query, system=self.system, history=self.history, **self.kwargs, **kwargs
         )
+
+        # update history
+        self.history += [
+            {'role': 'user'     , 'content': query},
+            {'role': 'assistant', 'content': text },
+        ]
 
         # return text
         return text

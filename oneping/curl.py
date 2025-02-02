@@ -8,40 +8,16 @@ import aiohttp
 from .providers import get_provider, get_embed_provider, DEFAULT_MAX_TOKENS
 
 ##
-## history
-##
-
-def strip_system(messages):
-    if len(messages) == 0:
-        return messages
-    if messages[0]['role'] == 'system':
-        return messages[1:]
-    return messages
-
-def compose_history(history, content):
-    if len(history) == 0:
-        return [{'role': 'user', 'content': content}]
-    last = history[-1]
-
-    # are we in prefill?
-    last_role, last_content = last['role'], last['content']
-    if last_role == 'assistant':
-        return history[:-1] + [
-            {'role': 'assistant', 'content': last_content + content},
-        ]
-
-    # usual case
-    return history + [{'role': 'assistant', 'content': content}]
-
-##
 ## payloads
 ##
 
-def prepare_url(prov, url=None, port=None):
+def prepare_url(prov, url=None, host=None, port=None):
+    if host is None:
+        host = 'localhost'
     if port is None:
         port = 8000
     if url is None:
-        url = prov['url'].format(port=port)
+        url = prov['url'].format(host=host, port=port)
     return url
 
 def prepare_auth(prov, api_key=None):
@@ -107,7 +83,6 @@ def reply(query, provider='local', history=None, prefill=None, **kwargs):
     )
 
     # request response and return
-    print(url, headers, payload)
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
 
@@ -119,13 +94,7 @@ def reply(query, provider='local', history=None, prefill=None, **kwargs):
     if prefill is not None:
         text = prefill + text
 
-    # update history
-    if history is not None:
-        history_sent = strip_system(payload['messages'])
-        history_next = compose_history(history_sent, text)
-        return history_next, text
-
-    # just return text
+    # return text
     return text
 
 async def reply_async(query, provider='local', history=None, prefill=None, **kwargs):
@@ -151,13 +120,7 @@ async def reply_async(query, provider='local', history=None, prefill=None, **kwa
     if prefill is not None:
         text = prefill + text
 
-    # update history
-    if history is not None:
-        history_sent = strip_system(payload['messages'])
-        history_next = compose_history(history_sent, text)
-        return history_next, text
-
-    # just return text
+    # return text
     return text
 
 ##

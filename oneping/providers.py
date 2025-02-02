@@ -60,12 +60,21 @@ def authorize_anthropic(api_key):
 ## message payloads
 ##
 
+def payload_oneping(query=None, system=None, prefill=None, prediction=None, history=None):
+    return {
+        'query': query,
+        'system': system,
+        'prefill': prefill,
+        'prediction': prediction,
+        'history': history,
+    }
+
 def payload_openai(query=None, system=None, prefill=None, prediction=None, history=None):
     if system is not None:
         messages = [{'role': 'system', 'content': system}]
     else:
         messages = []
-    if type(history) is list:
+    if history is not None:
         messages += history
     if query is not None:
         messages.append({'role': 'user', 'content': query})
@@ -91,8 +100,11 @@ def payload_anthropic(query=None, system=None, prefill=None, prediction=None, hi
     return payload
 
 ##
-## response extraction
+## response handlers
 ##
+
+def response_oneping(reply):
+    return reply
 
 def response_openai(reply):
     choice = reply['choices'][0]
@@ -101,6 +113,9 @@ def response_openai(reply):
 def response_anthropic(reply):
     content = reply['content'][0]
     return content['text']
+
+def stream_oneping(chunk):
+    return chunk
 
 def stream_openai(chunk):
     return chunk['choices'][0]['delta'].get('content', '')
@@ -151,8 +166,16 @@ DEFAULT_PROVIDER = {
 # presets for known llm providers
 LLM_PROVIDERS = {
     'local': {
-        'url': 'http://localhost:{port}/v1/chat/completions',
+        'url': 'http://{host}:{port}/v1/chat/completions',
         'authorize': None,
+    },
+    'oneping': {
+        'url': 'http://{host}:{port}/chat',
+        'host': 'localhost',
+        'port': 5000,
+        'payload': payload_oneping,
+        'response': response_oneping,
+        'stream': stream_oneping,
     },
     'openai': {
         'url': 'https://api.openai.com/v1/chat/completions',
@@ -198,7 +221,7 @@ DEFAULT_EMBED = {
 
 EMBED_PROVIDERS = {
     'local': {
-        'url': 'http://localhost:{port}/v1/embeddings',
+        'url': 'http://{host}:{port}/v1/embeddings',
         'authorize': None,
     },
     'openai': {
