@@ -12,18 +12,15 @@ from .providers import get_provider, get_embed_provider, DEFAULT_MAX_TOKENS
 ##
 
 def prepare_url(prov, url=None, host=None, port=None):
-    if host is None:
-        host = 'localhost'
-    if port is None:
-        port = 8000
-    if url is None:
-        url = prov['url'].format(host=host, port=port)
-    return url
+    host = prov.get('host') if host is None else host
+    port = prov.get('port') if port is None else port
+    url = prov.get('url') if url is None else url
+    return url.format(host=host, port=port)
 
 def prepare_auth(prov, api_key=None):
     if (auth_func := prov.get('authorize')) is not None:
-        if api_key is None and (api_key := os.environ.get(key_env := prov['api_key_env'])) is None:
-            raise Exception('Cannot find API key in {key_env}')
+        if (api_key := os.environ.get(prov['api_key_env'])) is None:
+            raise Exception('Cannot find API key in {api_key_env}')
         headers_auth = auth_func(api_key)
     else:
         headers_auth = {}
@@ -36,7 +33,7 @@ def prepare_model(prov, model=None):
 
 def prepare_request(
     query, provider='local', system=None, prefill=None, prediction=None, history=None,
-    url=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    url=None, host=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider
     prov = get_provider(provider)
@@ -45,7 +42,7 @@ def prepare_request(
     max_tokens_name = prov.get('max_tokens_name', 'max_tokens')
 
     # get full url
-    url = prepare_url(prov, url=url, port=port)
+    url = prepare_url(prov, url=url, host=host, port=port)
 
     # get authorization headers
     headers_auth = prepare_auth(prov, api_key=api_key)
@@ -127,9 +124,9 @@ async def reply_async(query, provider='local', history=None, prefill=None, **kwa
 ## stream requests
 ##
 
-def parse_stream_data(chunk):
-    if chunk.startswith(b'data: '):
-        text = chunk[6:]
+def parse_stream_data(line):
+    if line.startswith(b'data: '):
+        text = line[6:]
         if text != b'[DONE]' and len(text) > 0:
             return text
 
@@ -172,7 +169,9 @@ def stream(query, provider='local', history=None, prefill=None, **kwargs):
         for line in response.iter_lines():
             if (data := parse_stream_data(line)) is not None:
                 parsed = json.loads(data)
-                yield extractor(parsed)
+                text = extractor(parsed)
+                if text is not None:
+                    yield text
 
 async def stream_async(query, provider='local', history=None, prefill=None, **kwargs):
     # get provider
@@ -206,7 +205,9 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
             async for line in lines:
                 if (data := parse_stream_data(line)) is not None:
                     parsed = json.loads(data)
-                    yield extractor(parsed)
+                    text = extractor(parsed)
+                    if text is not None:
+                        yield text
 
 ##
 ## embeddings

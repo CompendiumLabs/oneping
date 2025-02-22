@@ -1,5 +1,6 @@
 # llm servers
 
+import json
 import subprocess
 from itertools import chain
 
@@ -25,6 +26,12 @@ def patch_payload(data):
         else:
             data['provider'] = model
     return data
+
+def generate_sse(stream):
+    for chunk in stream:
+        data = json.dumps(chunk)
+        yield f'data: {data}\n\n'
+    yield 'data: [DONE]\n\n'
 
 def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGINS, **kwargs):
     import uvicorn
@@ -61,11 +68,11 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
         data = genreq.model_dump(exclude_none=True)
         patch = patch_payload(data)
         if patch.get('stream', False):
-            ret = stream_api(**kwargs, **patch)
-            return StreamingResponse(ret, media_type='text/plain')
+            stream = stream_api(**kwargs, **patch)
+            sse = generate_sse(stream)
+            return StreamingResponse(sse, media_type='text/event-stream')
         else:
-            ret = reply_api(**kwargs, **patch)
-            text = ret[1] if type(ret) is tuple else ret
-            return PlainTextResponse(text)
+            reply = reply_api(**kwargs, **patch)
+            return PlainTextResponse(reply)
 
     uvicorn.run(app, host=host, port=port)

@@ -21,6 +21,7 @@ OPENAI_WHISPER = 'whisper-1'
 ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p1-70b-instruct'
 GROQ_MODEL = 'llama-3.1-70b-versatile'
+DEEPSEEK_MODEL = 'deepseek-chat'
 
 ##
 ## environment key names
@@ -30,6 +31,7 @@ OPENAI_KEYENV = 'OPENAI_API_KEY'
 ANTHROPIC_KEYENV = 'ANTHROPIC_API_KEY'
 FIREWORKS_KEYENV = 'FIREWORKS_API_KEY'
 GROQ_KEYENV = 'GROQ_API_KEY'
+DEEPSEEK_KEYENV = 'DEEPSEEK_API_KEY'
 AZURE_KEYENV = 'AZURE_OPENAI_API_KEY'
 
 ##
@@ -114,8 +116,9 @@ def response_anthropic(reply):
     content = reply['content'][0]
     return content['text']
 
-def stream_oneping(chunk):
-    return chunk
+##
+## stream handlers
+##
 
 def stream_openai(chunk):
     return chunk['choices'][0]['delta'].get('content', '')
@@ -123,8 +126,13 @@ def stream_openai(chunk):
 def stream_anthropic(chunk):
     if chunk['type'] == 'content_block_delta':
         return chunk['delta']['text']
-    else:
-        return ''
+
+def stream_oneping(chunk):
+    return chunk
+
+##
+## native handlers
+##
 
 def response_openai_native(reply):
     return reply.choices[0].message.content
@@ -145,6 +153,10 @@ def stream_anthropic_native(chunk):
     else:
         return ''
 
+##
+## other modal handlers
+##
+
 def embed_openai(reply):
     return reply['data'][0]['embedding']
 
@@ -156,7 +168,6 @@ def transcribe_openai(audio):
 ##
 
 DEFAULT_PROVIDER = {
-    'authorize': authorize_openai,
     'payload': payload_openai,
     'response': response_openai,
     'stream': stream_openai,
@@ -167,18 +178,21 @@ DEFAULT_PROVIDER = {
 LLM_PROVIDERS = {
     'local': {
         'url': 'http://{host}:{port}/v1/chat/completions',
-        'authorize': None,
+        'host': 'localhost',
+        'port': 8000,
     },
     'oneping': {
         'url': 'http://{host}:{port}/chat',
         'host': 'localhost',
         'port': 5000,
+        'authorize': None,
         'payload': payload_oneping,
         'response': response_oneping,
         'stream': stream_oneping,
     },
     'openai': {
         'url': 'https://api.openai.com/v1/chat/completions',
+        'authorize': authorize_openai,
         'max_tokens_name': 'max_completion_tokens',
         'api_key_env': OPENAI_KEYENV,
         'model': OPENAI_MODEL,
@@ -195,13 +209,21 @@ LLM_PROVIDERS = {
     },
     'fireworks': {
         'url': 'https://api.fireworks.ai/inference/v1/chat/completions',
+        'authorize': authorize_openai,
         'api_key_env': FIREWORKS_KEYENV,
         'model': FIREWORKS_MODEL,
     },
     'groq': {
         'url': 'https://api.groq.com/openai/v1/chat/completions',
+        'authorize': authorize_openai,
         'api_key_env': GROQ_KEYENV,
         'model': GROQ_MODEL,
+    },
+    'deepseek': {
+        'url': 'https://api.deepseek.com/chat/completions',
+        'authorize': authorize_openai,
+        'api_key_env': DEEPSEEK_KEYENV,
+        'model': DEEPSEEK_MODEL,
     },
 }
 
