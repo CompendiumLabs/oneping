@@ -216,6 +216,7 @@ LLM_PROVIDERS = {
     'groq': {
         'url': 'https://api.groq.com/openai/v1/chat/completions',
         'authorize': authorize_openai,
+        'max_tokens_name': 'max_completion_tokens',
         'api_key_env': GROQ_KEYENV,
         'model': GROQ_MODEL,
     },

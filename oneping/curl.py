@@ -8,6 +8,18 @@ import aiohttp
 from .providers import get_provider, get_embed_provider, DEFAULT_MAX_TOKENS
 
 ##
+## printing
+##
+
+def print_dryrun(url, headers, payload):
+    from rich import print_json
+    print(f'URL: {url}')
+    print('HEADERS:')
+    print_json(data=headers)
+    print('PAYLOAD:')
+    print_json(data=payload)
+
+##
 ## payloads
 ##
 
@@ -69,7 +81,7 @@ def prepare_request(
 ## requests
 ##
 
-def reply(query, provider='local', history=None, prefill=None, **kwargs):
+def reply(query, provider='local', history=None, prefill=None, dryrun=False, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['response']
@@ -78,6 +90,11 @@ def reply(query, provider='local', history=None, prefill=None, **kwargs):
     url, headers, payload = prepare_request(
         query, provider=provider, history=history, prefill=prefill, **kwargs
     )
+
+    # just print the request
+    if dryrun:
+        print_dryrun(url, headers, payload)
+        return
 
     # request response and return
     response = requests.post(url, headers=headers, data=json.dumps(payload))
