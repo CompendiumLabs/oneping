@@ -9,9 +9,13 @@ import asyncio
 def sprint(text):
     print(text, end='', flush=True)
 
-def streamer(stream):
+def streamer(stream, tee=False):
+    text = ''
     for chunk in stream:
+        text += chunk
         sprint(chunk)
+    if tee:
+        return text
 
 async def streamer_async(stream):
     async for chunk in stream:
