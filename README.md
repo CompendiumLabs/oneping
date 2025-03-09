@@ -6,11 +6,11 @@ oneping.reply('Give me a ping, Vasily. One ping only, please.', provider='anthro
 
 ![One ping only, please.](demo/oneping.png)
 
-This is a Python library for querying LLM providers such as OpenAI or Anthropic, as well as local models. The main goal is to create an abstraction layer that makes switching between them seamless. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, and `local` (local models).
+This is a Python library for querying LLM providers such as OpenAI or Anthropic, as well as local models. The main goal is to create an abstraction layer that makes switching between them seamless. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, `groq`, `deepseek`, and `local` (local models).
 
 There is also a `Chat` interface that automatically tracks the message history. Kind of departing from the "one ping" notion, but oh well. Additionally, there is a `textual` powered console interface and a `fasthtml` powered web interface. Both are components that can be embedded in other applications.
 
-Requesting the `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, and `fireworks-ai`.
+Requesting the `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, `fireworks-ai`, `groq`, and `deepseek`.
 
 ## Installation
 

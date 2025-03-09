@@ -141,13 +141,13 @@ async def reply_async(query, provider='local', history=None, prefill=None, **kwa
 ## stream requests
 ##
 
-def parse_stream_data(line):
+def parse_sse(line):
     if line.startswith(b'data: '):
         text = line[6:]
         if text != b'[DONE]' and len(text) > 0:
             return text
 
-async def iter_lines_buffered(inputs):
+async def iter_lines(inputs):
     buffer = b''
     async for chunk in inputs:
         buffer += chunk
@@ -184,7 +184,7 @@ def stream(query, provider='local', history=None, prefill=None, **kwargs):
 
         # extract stream contents
         for line in response.iter_lines():
-            if (data := parse_stream_data(line)) is not None:
+            if (data := parse_sse(line)) is not None:
                 parsed = json.loads(data)
                 text = extractor(parsed)
                 if text is not None:
@@ -209,18 +209,15 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
         async with session.post(url, headers=headers, data=json.dumps(payload)) as response:
             # check for errors
             response.raise_for_status()
+            chunks = response.content.iter_any()
 
             # yield prefill
             if prefill is not None:
                 yield prefill
 
             # extract stream contents
-            chunks = response.content.iter_any()
-            lines = iter_lines_buffered(chunks)
-
-            # extract stream contents
-            async for line in lines:
-                if (data := parse_stream_data(line)) is not None:
+            async for line in iter_lines(chunks):
+                if (data := parse_sse(line)) is not None:
                     parsed = json.loads(data)
                     text = extractor(parsed)
                     if text is not None:
