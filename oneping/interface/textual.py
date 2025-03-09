@@ -3,8 +3,8 @@
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widget import Widget
-from textual.widgets import Header, Input, Static, Markdown
-from textual.containers import VerticalScroll
+from textual.widgets import Header, Input, Static, Markdown, Label
+from textual.containers import Vertical, VerticalScroll
 from textual.events import Key
 from textual.reactive import reactive
 from rich.style import Style
@@ -20,10 +20,54 @@ from ..chat import Chat
 
 # colors
 role_colors = {
-    'system': '#4caf50',
+    'system': '#52a18b',
     'user': '#1e88e5',
-    'assistant': '#ff0d57',
+    'assistant': '#d576f6',
 }
+
+##
+## sidebar
+##
+
+
+class Sidebar(Widget):
+    DEFAULT_CSS = """
+    Sidebar {
+        width: 30;
+        layer: sidebar;
+        dock: left;
+        offset-x: -100%;
+
+        border-right: #cccccc;
+
+        transition: offset 100ms;
+
+        &.-visible {
+            offset-x: 0;
+        }
+
+        & > Vertical {
+            margin: 1 2;
+        }
+    }
+
+    #history_title {
+        width: 100%;
+        text-align: center;
+        border: round #d576f6;
+    }
+
+    Sidebar > Vertical > Label {
+        margin-bottom: 1;
+        text-wrap: wrap;
+    }
+    """
+
+    def compose(self):
+        with Vertical():
+            yield Label("Chat History", id='history_title')
+            yield Label("Is Jupiter a planet?")
+            yield Label("What is the capital of France?")
 
 ##
 ## widgets
@@ -142,6 +186,10 @@ class ChatWindow(Static):
             self.app.call_from_thread(setter, reply)
 
 class TextualChat(App):
+    BINDINGS = [("ctrl+s", "toggle_sidebar", "Toggle Sidebar")]
+
+    show_sidebar = reactive(False)
+
     def __init__(self, chat, **kwargs):
         super().__init__(**kwargs)
         self.chat = chat
@@ -150,11 +198,18 @@ class TextualChat(App):
 
     def compose(self):
         yield Header(id='header')
+        yield Sidebar()
         yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
         query = self.query_one('BareQuery')
         self.set_focus(query)
+
+    def action_toggle_sidebar(self):
+        self.show_sidebar = not self.show_sidebar
+
+    def watch_show_sidebar(self, show_sidebar):
+        self.query_one(Sidebar).set_class(show_sidebar, "-visible")
 
 # textual powered chat interface
 def main(**kwargs):
