@@ -1,5 +1,8 @@
 # textual chat interface
 
+import re
+import os
+
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widget import Widget
@@ -28,7 +31,6 @@ role_colors = {
 ##
 ## sidebar
 ##
-
 
 class Sidebar(Widget):
     DEFAULT_CSS = """
@@ -63,11 +65,16 @@ class Sidebar(Widget):
     }
     """
 
+    def __init__(self, convo, **kwargs):
+        super().__init__(**kwargs)
+        self.convo = convo
+
     def compose(self):
         with Vertical():
             yield Label("Chat History", id='history_title')
-            yield Label("Is Jupiter a planet?")
-            yield Label("What is the capital of France?")
+            for title in self.convo:
+                yield Label(title)
+
 
 ##
 ## widgets
@@ -185,20 +192,57 @@ class ChatWindow(Static):
         async for reply in cumcat(generate):
             self.app.call_from_thread(setter, reply)
 
+class ConvoStore:
+    def __init__(self, store):
+        self.store = store
+        self.load_store()
+
+    @staticmethod
+    def parse_convo(markdown):
+        # match title (#!)
+        title_match = re.match(r'^#! (.*)\n', markdown)
+        if title_match is None: return None
+        title = title_match.group(1)
+
+        # match messages
+        chunks = re.split(r'\n\n(SYSTEM|USER|ASSISTANT): ', markdown)
+        messages = [
+            {'role': role, 'text': text}
+            for role, text in zip(chunks[1::2], chunks[2::2])
+        ]
+
+        # return title and messages
+        return title, messages
+
+    def load_store(self):
+        self.convo = {}
+        for file in os.listdir(self.store):
+            with open(os.path.join(self.store, file), 'r') as fid:
+                markdown = fid.read().strip()
+                result = ConvoStore.parse_convo(markdown)
+                if result is None: continue
+                title, messages = result
+                self.convo[title] = messages
+
 class TextualChat(App):
     BINDINGS = [("ctrl+s", "toggle_sidebar", "Toggle Sidebar")]
 
     show_sidebar = reactive(False)
 
-    def __init__(self, chat, **kwargs):
+    def __init__(self, chat, store=None, **kwargs):
         super().__init__(**kwargs)
         self.chat = chat
+
+        # load conversation history
+        self.store = ConvoStore(store) if store is not None else None
+
+        # set window title
         provider = self.chat.kwargs.get('provider', 'local')
         self.title = f'oneping: {provider}'
 
     def compose(self):
         yield Header(id='header')
-        yield Sidebar()
+        yield Sidebar(convo=self.store.convo)
         yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
@@ -206,13 +250,14 @@ class TextualChat(App):
         self.set_focus(query)
 
     def action_toggle_sidebar(self):
-        self.show_sidebar = not self.show_sidebar
+        if self.store is not None:
+            self.show_sidebar = not self.show_sidebar
 
     def watch_show_sidebar(self, show_sidebar):
         self.query_one(Sidebar).set_class(show_sidebar, "-visible")
 
 # textual powered chat interface
-def main(**kwargs):
+def main(store=None, **kwargs):
     chat = Chat(**kwargs)
-    app = TextualChat(chat)
+    app = TextualChat(chat, store=store)
     app.run()
