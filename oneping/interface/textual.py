@@ -2,6 +2,7 @@
 
 import re
 import os
+import datetime
 
 from textual import on, work
 from textual.app import App, ComposeResult
@@ -72,9 +73,9 @@ class Sidebar(Widget):
     def compose(self):
         with Vertical():
             yield Label("Chat History", id='history_title')
-            for title in self.convo:
-                yield Label(title)
-
+            for convo in self.convo.values():
+                if convo is None: continue
+                yield Label(convo['title'])
 
 ##
 ## widgets
@@ -198,7 +199,12 @@ class ConvoStore:
         self.load_store()
 
     @staticmethod
-    def parse_convo(markdown):
+    def load_convo(path):
+        # read markdown file
+        timestamp = datetime.datetime.now()
+        with open(path, 'r') as fid:
+            markdown = fid.read().strip()
+
         # match title (#!)
         title_match = re.match(r'^#! (.*)\n', markdown)
         if title_match is None: return None
@@ -215,7 +221,11 @@ class ConvoStore:
         ]
 
         # return title and messages
-        return title, messages
+        return {
+            'title': title,
+            'messages': messages,
+            'timestamp': timestamp,
+        }
 
     def load_store(self):
         # check for exitence
@@ -225,15 +235,8 @@ class ConvoStore:
 
         # load all convos
         for file in os.listdir(self.store):
-            with open(os.path.join(self.store, file), 'r') as fid:
-                # parse conversation
-                markdown = fid.read().strip()
-                result = self.parse_convo(markdown)
-                if result is None: continue
-
-                # add to conversation list
-                title, messages = result
-                self.convo[title] = messages
+            path = os.path.join(self.store, file)
+            self.convo[file] = self.load_convo(path)
 
 class TextualChat(App):
     BINDINGS = [("ctrl+s", "toggle_sidebar", "Toggle Sidebar")]
