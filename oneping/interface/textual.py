@@ -121,7 +121,7 @@ class ChatHistory(VerticalScroll):
 class BareQuery(Input):
     DEFAULT_CSS = """
     BareQuery {
-        background: $surface;
+        background: transparent;
         padding: 0 1;
     }
     """
@@ -206,6 +206,9 @@ class ConvoStore:
 
         # match messages
         chunks = re.split(r'\n\n(SYSTEM|USER|ASSISTANT): ', markdown)
+        if len(chunks) == 1 or len(chunks) % 2 == 0: return None
+
+        # message list format
         messages = [
             {'role': role, 'text': text}
             for role, text in zip(chunks[1::2], chunks[2::2])
@@ -215,12 +218,20 @@ class ConvoStore:
         return title, messages
 
     def load_store(self):
+        # check for exitence
         self.convo = {}
+        if not os.path.exists(self.store):
+            return
+
+        # load all convos
         for file in os.listdir(self.store):
             with open(os.path.join(self.store, file), 'r') as fid:
+                # parse conversation
                 markdown = fid.read().strip()
-                result = ConvoStore.parse_convo(markdown)
+                result = self.parse_convo(markdown)
                 if result is None: continue
+
+                # add to conversation list
                 title, messages = result
                 self.convo[title] = messages
 
