@@ -3,6 +3,7 @@
 import json
 import subprocess
 from itertools import chain
+from typing import Literal
 
 from .api import reply as reply_api, stream as stream_api
 
@@ -40,18 +41,41 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     from fastapi.responses import PlainTextResponse, StreamingResponse
     from pydantic import BaseModel
 
-    MessageDict = dict[str, str]
+    # message validation
+
+    class ContentText(BaseModel):
+        type: Literal['text']
+        text: str
+
+    class MediaSource(BaseModel):
+        type: Literal['base64']
+        media_type: str
+        data: str
+
+    class ContentImage(BaseModel):
+        type: Literal['image']
+        source: MediaSource
+
+    ContentItem = ContentText | ContentImage
+    ContentList = ContentItem | list[ContentItem]
+
+    class MessageDict(BaseModel):
+        role: Literal['user', 'assistant', 'system']
+        content: ContentList
+
     class GenerateRequest(BaseModel):
-        query: str | MessageDict | list[MessageDict]
+        query: str | ContentList
         stream: bool | None = False
         native: bool | None = None
         provider: str | None = None
         model: str | None = None
         system: str | None = None
         prefill: str | None = None
-        prediction: MessageDict | None = None
+        prediction: ContentText | None = None
         max_tokens: int | None = None
         history: list[MessageDict] | None = None
+
+    # main interface
 
     app = FastAPI()
 
@@ -75,5 +99,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
         else:
             reply = reply_api(**kwargs, **patch)
             return PlainTextResponse(reply)
+
+    # start server
 
     uvicorn.run(app, host=host, port=port)
