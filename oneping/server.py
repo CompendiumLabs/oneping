@@ -40,17 +40,18 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     from fastapi.responses import PlainTextResponse, StreamingResponse
     from pydantic import BaseModel
 
+    MessageDict = dict[str, str]
     class GenerateRequest(BaseModel):
-        query: str
+        query: str | MessageDict | list[MessageDict]
         stream: bool | None = False
         native: bool | None = None
         provider: str | None = None
         model: str | None = None
         system: str | None = None
         prefill: str | None = None
-        prediction: dict[str, str] | None = None
+        prediction: MessageDict | None = None
         max_tokens: int | None = None
-        history: list[dict[str, str]] | None = None
+        history: list[MessageDict] | None = None
 
     app = FastAPI()
 
