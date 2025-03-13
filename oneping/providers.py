@@ -1,7 +1,8 @@
 # default arguments
 
-import mimetypes
+import os
 import base64
+import mimetypes
 
 ##
 ## system prompt
@@ -61,22 +62,45 @@ def authorize_anthropic(api_key):
 ## message payloads
 ##
 
+# accepts file object or path
 def convert_image(image):
-    with open(image, 'rb') as f:
-        data = f.read()
-    media_type, _ = mimetypes.guess_type(image)
-    sdata = base64.b64encode(data).decode('utf-8')
-    return {
-        'type': 'base64', 'media_type': media_type, 'data': sdata
-    }
+    if os.path.exists(image):
+        media_type, _ = mimetypes.guess_type(image)
+        with open(image, 'rb') as f:
+            binary = f.read()
+        data = base64.b64encode(binary).decode('utf-8')
+    else:
+        media_type, data = re.match(r'data:(.*);base64,(.*)', image).groups()
+    return media_type, data
 
-def content_openai(text=None, image=None):
-    contents = []
-    if image is not None:
-        contents.append({ 'type': 'image', 'source': convert_image(image) })
-    if text is not None:
-        contents.append({ 'type': 'text', 'text': text })
-    return contents
+def content_openai(text, image=None):
+    if image is None:
+        return text
+    media_type, data = convert_image(image)
+    image_url = { 'url': f'data:{media_type};base64,{data}' }
+    return [
+        { 'type': 'image_url', 'image_url': image_url },
+        { 'type': 'text', 'text': text },
+    ]
+
+def content_anthropic(text, image=None):
+    if image is None:
+        return text
+    media_type, data = convert_image(image)
+    source = {
+        'type': 'base64', 'media_type': media_type, 'data': data
+    }
+    return [
+        { 'type': 'image', 'source': source },
+        { 'type': 'text', 'text': text },
+    ]
+
+def content_oneping(text, image=None):
+    if image is None:
+        return text
+    media_type, data = convert_image(image)
+    image_url = f'data:{media_type};base64,{data}'
+    return { 'image': image_url, 'text': text }
 
 def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
     return {
@@ -195,6 +219,7 @@ LLM_PROVIDERS = {
         'host': 'localhost',
         'port': 5000,
         'authorize': None,
+        'content': content_oneping,
         'payload': payload_oneping,
         'response': response_oneping,
         'stream': stream_oneping,
@@ -208,6 +233,7 @@ LLM_PROVIDERS = {
     },
     'anthropic': {
         'url': 'https://api.anthropic.com/v1/messages',
+        'content': content_anthropic,
         'payload': payload_anthropic,
         'authorize': authorize_anthropic,
         'response': response_anthropic,

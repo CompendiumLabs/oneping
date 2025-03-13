@@ -20,11 +20,20 @@ def start_llama_cpp(model, n_gpu_layers=-1, **kwargs):
 # map messages back into history for rebroadcasting
 # this accepts model = provider/model like openrouter
 def patch_payload(data):
+    # handle provider/model setup
     if 'provider' not in data and 'model' in data:
         if '/' in (model := data.pop('model')):
             data['provider'], data['model'] = model.split('/', maxsplit=1)
         else:
             data['provider'] = model
+
+    # unpack image content
+    if 'query' in data and type(data['query']) is dict:
+        content = data.pop('query')
+        data['query'] = content['text']
+        data['image'] = content['image']
+
+    # return patched payload
     return data
 
 def generate_sse(stream):
@@ -42,36 +51,16 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     from typing import Literal
 
     ## message validation
-
-    class ContentText(BaseModel):
-        type: Literal['text']
-        text: str
-
-    class MediaSource(BaseModel):
-        type: Literal['base64']
-        media_type: str
-        data: str
-
-    class ContentImage(BaseModel):
-        type: Literal['image']
-        source: MediaSource
-
-    ContentItem = ContentText | ContentImage
-    ContentList = ContentItem | list[ContentItem]
-
-    class MessageDict(BaseModel):
-        role: Literal['user', 'assistant', 'system']
-        content: ContentList
-
+    MessageDict = dict[str, str]
     class GenerateRequest(BaseModel):
-        content: str | ContentList
+        query: str | MessageDict
         stream: bool | None = False
         native: bool | None = None
         provider: str | None = None
         model: str | None = None
         system: str | None = None
         prefill: str | None = None
-        prediction: ContentText | None = None
+        prediction: MessageDict | None = None
         max_tokens: int | None = None
         history: list[MessageDict] | None = None
 

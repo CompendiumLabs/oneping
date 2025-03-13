@@ -44,7 +44,7 @@ def prepare_model(prov, model=None):
     return {'model': model} if model is not None else {}
 
 def prepare_request(
-    query, provider='local', system=None, prefill=None, prediction=None, history=None,
+    query, provider='local', system=None, image=None, prefill=None, prediction=None, history=None,
     url=None, host=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider details
@@ -58,7 +58,7 @@ def prepare_request(
     headers_extra = prov.get('headers', {})
 
     # get message payload
-    content = prov['content'](query=query, image=image)
+    content = prov['content'](query, image=image)
     payload_message = prov['payload'](
         content, system=system, prefill=prefill, prediction=prediction, history=history
     )
