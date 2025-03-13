@@ -47,30 +47,23 @@ def prepare_request(
     query, provider='local', system=None, prefill=None, prediction=None, history=None,
     url=None, host=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
-    # external provider
+    # external provider details
     prov = get_provider(provider)
-
-    # get max_tokens name (might be max_completion_tokens for openai)
     max_tokens_name = prov.get('max_tokens_name', 'max_tokens')
-
-    # get full url
     url = prepare_url(prov, url=url, host=host, port=port)
-
-    # get authorization headers
-    headers_auth = prepare_auth(prov, api_key=api_key)
-
-    # get extra headers
-    headers_extra = prov.get('headers', {})
-
-    # get default model
     payload_model = prepare_model(prov, model=model)
 
+    # get extra headers
+    headers_auth = prepare_auth(prov, api_key=api_key)
+    headers_extra = prov.get('headers', {})
+
     # get message payload
+    content = prov['content'](query=query, image=image)
     payload_message = prov['payload'](
-        query=query, system=system, prefill=prefill, prediction=prediction, history=history
+        content, system=system, prefill=prefill, prediction=prediction, history=history
     )
 
-    # base payload
+    # compose request
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
     payload = {**payload_model, **payload_message, max_tokens_name: max_tokens, **kwargs}
 
@@ -228,20 +221,16 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
 ##
 
 def embed(text, provider='local', url=None, port=None, api_key=None, model=None, **kwargs):
-    # get provider
+    # get provider details
     prov = get_embed_provider(provider)
+    url = prepare_url(prov, url=url, port=port)
     extractor = prov['embed']
 
-    # get full url
-    url = prepare_url(prov, url=url, port=port)
-
-    # get authorization headers
+    # get extra headers and model
     headers_auth = prepare_auth(prov, api_key=api_key)
-
-    # get default model
     payload_model = prepare_model(prov, model=model)
 
-    # combine payload
+    # compose request
     headers = {'Content-Type': 'application/json', **headers_auth}
     payload = {'input': text, **payload_model}
 

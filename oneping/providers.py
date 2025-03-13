@@ -1,8 +1,7 @@
 # default arguments
 
-##
-## models
-##
+import mimetypes
+import base64
 
 ##
 ## system prompt
@@ -62,24 +61,37 @@ def authorize_anthropic(api_key):
 ## message payloads
 ##
 
-def payload_oneping(query=None, system=None, prefill=None, prediction=None, history=None):
+def convert_image(image):
+    with open(image, 'rb') as f:
+        data = f.read()
+    media_type, _ = mimetypes.guess_type(image)
+    sdata = base64.b64encode(data).decode('utf-8')
     return {
-        'query': query,
+        'type': 'base64', 'media_type': media_type, 'data': sdata
+    }
+
+def content_openai(text=None, image=None):
+    contents = []
+    if image is not None:
+        contents.append({ 'type': 'image', 'source': convert_image(image) })
+    if text is not None:
+        contents.append({ 'type': 'text', 'text': text })
+    return contents
+
+def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
+    return {
+        'content': content,
         'system': system,
         'prefill': prefill,
         'prediction': prediction,
         'history': history,
     }
 
-def payload_openai(query=None, system=None, prefill=None, prediction=None, history=None):
-    if system is not None:
-        messages = [{'role': 'system', 'content': system}]
-    else:
-        messages = []
+def payload_openai(content, system=None, prefill=None, prediction=None, history=None):
+    messages = [{'role': 'system', 'content': system}] if system is not None else []
     if history is not None:
         messages += history
-    if query is not None:
-        messages.append({'role': 'user', 'content': query})
+    messages.append({'role': 'user', 'content': content})
     if prefill is not None:
         messages.append({'role': 'assistant', 'content': prefill})
     payload = {'messages': messages}
@@ -87,13 +99,9 @@ def payload_openai(query=None, system=None, prefill=None, prediction=None, histo
         payload['prediction'] = {'type': 'content', 'content': prediction}
     return payload
 
-def payload_anthropic(query=None, system=None, prefill=None, prediction=None, history=None):
-    if type(history) is list:
-        messages = [*history]
-    else:
-        messages = []
-    if query is not None:
-        messages.append({'role': 'user', 'content': query})
+def payload_anthropic(content, system=None, prefill=None, prediction=None, history=None):
+    messages = [*history] if type(history) is list else []
+    messages.append({'role': 'user', 'content': content})
     if prefill is not None:
         messages.append({'role': 'assistant', 'content': prefill})
     payload = {'messages': messages}
@@ -168,6 +176,7 @@ def transcribe_openai(audio):
 ##
 
 DEFAULT_PROVIDER = {
+    'content': content_openai,
     'payload': payload_openai,
     'response': response_openai,
     'stream': stream_openai,

@@ -3,7 +3,6 @@
 import json
 import subprocess
 from itertools import chain
-from typing import Literal
 
 from .api import reply as reply_api, stream as stream_api
 
@@ -40,8 +39,9 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import PlainTextResponse, StreamingResponse
     from pydantic import BaseModel
+    from typing import Literal
 
-    # message validation
+    ## message validation
 
     class ContentText(BaseModel):
         type: Literal['text']
@@ -64,7 +64,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
         content: ContentList
 
     class GenerateRequest(BaseModel):
-        query: str | ContentList
+        content: str | ContentList
         stream: bool | None = False
         native: bool | None = None
         provider: str | None = None
@@ -75,10 +75,12 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
         max_tokens: int | None = None
         history: list[MessageDict] | None = None
 
-    # main interface
+    ## main interface
 
+    # make app
     app = FastAPI()
 
+    # CORS stuff
     if allow_origins is not None:
         app.add_middleware(
             CORSMiddleware,
@@ -88,6 +90,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
             allow_headers=['*'],
         )
 
+    # chat endpoint
     @app.post('/chat')
     async def chat(genreq: GenerateRequest):
         data = genreq.model_dump(exclude_none=True)
@@ -101,5 +104,4 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
             return PlainTextResponse(reply)
 
     # start server
-
     uvicorn.run(app, host=host, port=port)
