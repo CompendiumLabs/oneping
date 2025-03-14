@@ -82,8 +82,6 @@ def content_anthropic(text, image=None):
     ]
 
 def content_oneping(text, image=None):
-    if image is None:
-        return text
     return { 'image': image, 'text': text }
 
 ##
@@ -114,7 +112,8 @@ def payload_anthropic(content, system=None, prefill=None, prediction=None, histo
 
 def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
     return {
-        'content': content,
+        'query': content['text'],
+        'image': content.get('image'),
         'system': system,
         'prefill': prefill,
         'prediction': prediction,

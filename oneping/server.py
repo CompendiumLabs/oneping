@@ -27,17 +27,6 @@ def patch_payload(data):
         else:
             data['provider'] = model
 
-    # unpack image content
-    if 'content' in data:
-        content = data.pop('content')
-        if type(content) is dict:
-            if 'text' in content:
-                data['query'] = content['text']
-            if 'image' in content:
-                data['image'] = content['image']
-        else:
-            data['query'] = content
-
     # return patched payload
     return data
 
@@ -56,16 +45,17 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     from typing import Literal
 
     ## message validation
-    class ContentDict(BaseModel):
+    class ContentItem(BaseModel):
         text: str | None = None
         image: str | None = None
 
-    class MessageDict(BaseModel):
+    class HistoryItem(BaseModel):
         role: Literal['user', 'assistant']
-        content: str | ContentDict
+        content: ContentItem
 
     class GenerateRequest(BaseModel):
-        content: str | ContentDict
+        query: str
+        image: str | None = None
         stream: bool | None = False
         native: bool | None = None
         provider: str | None = None
@@ -74,7 +64,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
         prefill: str | None = None
         prediction: str | None = None
         max_tokens: int | None = None
-        history: list[MessageDict] | None = None
+        history: list[HistoryItem] | None = None
 
     ## main interface
 

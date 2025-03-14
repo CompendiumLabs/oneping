@@ -43,6 +43,18 @@ def prepare_model(prov, model=None):
         model = prov.get('model')
     return {'model': model} if model is not None else {}
 
+def convert_history(content, history):
+    return [
+        {
+            'role': item['role'],
+            'content': content(
+                item['content']['text'],
+                image=item['content'].get('image')
+            )
+        }
+        for item in history
+    ]
+
 def prepare_request(
     query, provider='local', system=None, image=None, prefill=None, prediction=None, history=None,
     url=None, host=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
@@ -52,6 +64,9 @@ def prepare_request(
     max_tokens_name = prov.get('max_tokens_name', 'max_tokens')
     url = prepare_url(prov, url=url, host=host, port=port)
     payload_model = prepare_model(prov, model=model)
+
+    # convert history to provider format
+    history = convert_history(prov['content'], history)
 
     # get extra headers
     headers_auth = prepare_auth(prov, api_key=api_key)
