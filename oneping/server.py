@@ -38,9 +38,11 @@ def generate_sse(stream):
 
 def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGINS, **kwargs):
     import uvicorn
-    from fastapi import FastAPI
+    from fastapi import FastAPI, status
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse, StreamingResponse
+    from fastapi.exceptions import RequestValidationError
+    from fastapi.requests import Request
     from pydantic import BaseModel
     from typing import Literal
 
@@ -70,6 +72,14 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
 
     # make app
     app = FastAPI()
+
+    # print out errors
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        print(request)
+        print(exc)
+        content = {'status_code': 10422, 'message': str(exc), 'data': None}
+        return JSONResponse(content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     # CORS stuff
     if allow_origins is not None:
