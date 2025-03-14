@@ -28,10 +28,15 @@ def patch_payload(data):
             data['provider'] = model
 
     # unpack image content
-    if 'query' in data and type(data['query']) is dict:
-        content = data.pop('query')
-        data['query'] = content['text']
-        data['image'] = content['image']
+    if 'content' in data:
+        content = data.pop('content')
+        if type(content) is dict:
+            if 'text' in content:
+                data['query'] = content['text']
+            if 'image' in content:
+                data['image'] = content['image']
+        else:
+            data['query'] = content
 
     # return patched payload
     return data
@@ -46,21 +51,28 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     import uvicorn
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import PlainTextResponse, StreamingResponse
+    from fastapi.responses import JSONResponse, StreamingResponse
     from pydantic import BaseModel
     from typing import Literal
 
     ## message validation
-    MessageDict = dict[str, str]
+    class ContentDict(BaseModel):
+        text: str | None = None
+        image: str | None = None
+
+    class MessageDict(BaseModel):
+        role: Literal['user', 'assistant']
+        content: str | ContentDict
+
     class GenerateRequest(BaseModel):
-        query: str | MessageDict
+        content: str | ContentDict
         stream: bool | None = False
         native: bool | None = None
         provider: str | None = None
         model: str | None = None
         system: str | None = None
         prefill: str | None = None
-        prediction: MessageDict | None = None
+        prediction: str | None = None
         max_tokens: int | None = None
         history: list[MessageDict] | None = None
 
@@ -90,7 +102,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
             return StreamingResponse(sse, media_type='text/event-stream')
         else:
             reply = reply_api(**kwargs, **patch)
-            return PlainTextResponse(reply)
+            return JSONResponse(reply)
 
     # start server
     uvicorn.run(app, host=host, port=port)

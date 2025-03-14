@@ -1,8 +1,6 @@
 # default arguments
 
-import os
-import base64
-import mimetypes
+from .utils import load_image_uri, parse_image_uri
 
 ##
 ## system prompt
@@ -59,25 +57,13 @@ def authorize_anthropic(api_key):
     }
 
 ##
-## message payloads
+## content converters
 ##
-
-# accepts file object or path
-def convert_image(image):
-    if os.path.exists(image):
-        media_type, _ = mimetypes.guess_type(image)
-        with open(image, 'rb') as f:
-            binary = f.read()
-        data = base64.b64encode(binary).decode('utf-8')
-    else:
-        media_type, data = re.match(r'data:(.*);base64,(.*)', image).groups()
-    return media_type, data
 
 def content_openai(text, image=None):
     if image is None:
         return text
-    media_type, data = convert_image(image)
-    image_url = { 'url': f'data:{media_type};base64,{data}' }
+    image_url = { 'url': image }
     return [
         { 'type': 'image_url', 'image_url': image_url },
         { 'type': 'text', 'text': text },
@@ -86,7 +72,7 @@ def content_openai(text, image=None):
 def content_anthropic(text, image=None):
     if image is None:
         return text
-    media_type, data = convert_image(image)
+    media_type, data = parse_image_uri(image)
     source = {
         'type': 'base64', 'media_type': media_type, 'data': data
     }
@@ -98,18 +84,11 @@ def content_anthropic(text, image=None):
 def content_oneping(text, image=None):
     if image is None:
         return text
-    media_type, data = convert_image(image)
-    image_url = f'data:{media_type};base64,{data}'
-    return { 'image': image_url, 'text': text }
+    return { 'image': image, 'text': text }
 
-def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
-    return {
-        'content': content,
-        'system': system,
-        'prefill': prefill,
-        'prediction': prediction,
-        'history': history,
-    }
+##
+## message payloads
+##
 
 def payload_openai(content, system=None, prefill=None, prediction=None, history=None):
     messages = [{'role': 'system', 'content': system}] if system is not None else []
@@ -132,6 +111,15 @@ def payload_anthropic(content, system=None, prefill=None, prediction=None, histo
     if system is not None:
         payload['system'] = system
     return payload
+
+def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
+    return {
+        'content': content,
+        'system': system,
+        'prefill': prefill,
+        'prediction': prediction,
+        'history': history,
+    }
 
 ##
 ## response handlers

@@ -1,36 +1,35 @@
 import sys
 import fire
 
-from .utils import streamer
+from .utils import streamer, load_image_uri
 from .api import reply, stream, embed
 from .server import start_llama_cpp, start_router
 
-def get_query(query):
+def get_content(query, image=None):
+    content = {}
     if query is None:
         if not sys.stdin.isatty():
             query = sys.stdin.read()
-    return query
+    if query is not None:
+        content['query'] = query
+    if image is not None:
+        content['image'] = load_image_uri(image)
+    return content
 
 class ChatCLI:
-    def reply(self, query=None, **kwargs):
-        query = get_query(query)
-        if query is None:
-            return 'No query specified'
-        return reply(query, **kwargs)
+    def reply(self, query=None, image=None, **kwargs):
+        content = get_content(query, image)
+        return reply(**content, **kwargs)
 
-    def stream(self, query=None, **kwargs):
-        query = get_query(query)
-        if query is None:
-            return 'No query specified'
-        reply = stream(query, **kwargs)
+    def stream(self, query=None, image=None, **kwargs):
+        content = get_content(query, image)
+        reply = stream(**content, **kwargs)
         streamer(reply)
         print()
 
     def embed(self, text=None, **kwargs):
-        text = get_query(text)
-        if text is None:
-            return 'No text specified'
-        return embed(text, **kwargs)
+        content = get_content(text)
+        return embed(**content, **kwargs)
 
     def console(self, **kwargs):
         from .interface.textual import main as main_textual
