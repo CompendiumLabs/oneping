@@ -13,19 +13,27 @@ from ..utils import parse_image_uri
 ##
 
 def make_content(text, image=None):
-    parts = [text]
+    parts = [Part(text=text)]
     if image is not None:
         mime_type, data = parse_image_uri(image)
         part = Part.from_bytes(data=data, mime_type=mime_type)
         parts.append(part)
     return parts
 
+def convert_role(role):
+    if role == 'assistant':
+        return 'model'
+    else:
+        return role
+
 def convert_history(history):
     if history is None:
         return None
     return [
         Content(
-            role=message['role'],
+            role=convert_role(
+                message['role']
+            ),
             parts=make_content(
                 message['content']['text'],
                 image=message['content'].get('image')
