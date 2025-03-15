@@ -59,21 +59,21 @@ def make_client(api_key=None, async_client=False):
     client = genai.client.Client(api_key=api_key)
     return genai.client.AsyncClient(client) if async_client else client
 
-def reply(query, image=None, history=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+def reply(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
     client = make_client(api_key=api_key)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
     response = chat.send_message(content)
     return response.text
 
-async def reply_async(query, image=None, history=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
     client = make_client(api_key=api_key, async_client=True)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
     response = await chat.send_message(content)
     return response.text
 
-def stream(query, image=None, history=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+def stream(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
     client = make_client(api_key=api_key)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
@@ -81,7 +81,7 @@ def stream(query, image=None, history=None, system=DEFAULT_SYSTEM, api_key=None,
     for chunk in stream:
         yield chunk.text
 
-async def stream_async(query, image=None, history=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
     client = make_client(api_key=api_key, async_client=True)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
