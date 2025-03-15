@@ -44,6 +44,8 @@ def prepare_model(prov, model=None):
     return {'model': model} if model is not None else {}
 
 def convert_history(content, history):
+    if history is None:
+        return None
     return [
         {
             'role': item['role'],

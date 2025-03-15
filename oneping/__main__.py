@@ -35,6 +35,10 @@ class ChatCLI:
         from .interface.textual import main as main_textual
         main_textual(**kwargs)
 
+    def prompt(self, **kwargs):
+        from .interface.prompt import main as main_prompt
+        main_prompt(**kwargs)
+
     def web(self, **kwargs):
         from .interface.fasthtml import main as main_fasthtml
         main_fasthtml(**kwargs)
