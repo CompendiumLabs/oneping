@@ -16,37 +16,37 @@ from .native import (
     transcribe as transcribe_native,
 )
 
-def reply(query, provider='local', native=False, **kwargs):
+def reply(query, provider='local', native=True, **kwargs):
     if native:
         return reply_native(query, provider, **kwargs)
     else:
         return reply_url(query, provider=provider, **kwargs)
 
-def reply_async(query, provider='local', native=False, **kwargs):
+def reply_async(query, provider='local', native=True, **kwargs):
     if native:
         return reply_async_native(query, provider, **kwargs)
     else:
         return reply_async_url(query, provider=provider, **kwargs)
 
-def stream(query, provider='local', native=False, **kwargs):
+def stream(query, provider='local', native=True, **kwargs):
     if native:
         return stream_native(query, provider, **kwargs)
     else:
         return stream_url(query, provider=provider, **kwargs)
 
-def stream_async(query, provider='local', native=False, **kwargs):
+def stream_async(query, provider='local', native=True, **kwargs):
     if native:
         return stream_async_native(query, provider, **kwargs)
     else:
         return stream_async_url(query, provider=provider, **kwargs)
 
-def embed(text, provider='local', native=False, **kwargs):
+def embed(text, provider='local', native=True, **kwargs):
     if native:
         return embed_native(text, provider, **kwargs)
     else:
         return embed_url(text, provider=provider, **kwargs)
 
-def transcribe(audio, provider='local', native=False, **kwargs):
+def transcribe(audio, provider='local', native=True, **kwargs):
     if native:
         return transcribe_native(audio, provider, **kwargs)
     else:

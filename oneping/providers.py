@@ -17,8 +17,8 @@ OPENAI_MODEL = 'gpt-4o'
 OPENAI_EMBED = 'text-embedding-3-small'
 OPENAI_WHISPER = 'whisper-1'
 ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
-FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p1-70b-instruct'
-GROQ_MODEL = 'llama-3.1-70b-versatile'
+FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p3-70b-instruct'
+GROQ_MODEL = 'llama-3.3-70b-versatile'
 DEEPSEEK_MODEL = 'deepseek-chat'
 GOOGLE_MODEL = 'gemini-2.0-flash-exp'
 GOOGLE_EMBED = 'gemini-embedding-exp-03-07'
@@ -86,6 +86,20 @@ def content_anthropic(text, image=None):
 
 def content_oneping(text, image=None):
     return { 'image': image, 'text': text }
+
+def convert_history(history, content_func):
+    if history is None:
+        return None
+    return [
+        {
+            'role': item['role'],
+            'content': content_func(
+                item['content']['text'],
+                image=item['content'].get('image')
+            )
+        }
+        for item in history
+    ]
 
 ##
 ## message payloads
