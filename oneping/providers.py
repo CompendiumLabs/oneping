@@ -20,6 +20,8 @@ ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p1-70b-instruct'
 GROQ_MODEL = 'llama-3.1-70b-versatile'
 DEEPSEEK_MODEL = 'deepseek-chat'
+GOOGLE_MODEL = 'gemini-2.0-flash-exp'
+GOOGLE_EMBED = 'gemini-embedding-exp-03-07'
 
 ##
 ## environment key names
@@ -31,6 +33,7 @@ FIREWORKS_KEYENV = 'FIREWORKS_API_KEY'
 GROQ_KEYENV = 'GROQ_API_KEY'
 DEEPSEEK_KEYENV = 'DEEPSEEK_API_KEY'
 AZURE_KEYENV = 'AZURE_OPENAI_API_KEY'
+GOOGLE_KEYENV = 'GEMINI_API_KEY'
 
 ##
 ## options

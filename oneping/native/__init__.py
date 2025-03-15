@@ -119,6 +119,26 @@ except ImportError as e:
     transcribe_azure = dummy_azure
 
 ##
+## google
+##
+
+try:
+    from .google import (
+        make_client as make_client_google,
+        reply as reply_google,
+        stream as stream_google,
+        reply_async as reply_async_google,
+        stream_async as stream_async_google,
+    )
+except ImportError:
+    dummy_google = DummyFunction('google')
+    make_client_google = dummy_google
+    reply_google = dummy_google
+    stream_google = dummy_google
+    reply_async_google = dummy_google
+    stream_async_google = dummy_google
+
+##
 ## router
 ##
 
@@ -133,6 +153,8 @@ def make_client(provider, **kwargs):
         return make_client_groq(**kwargs)
     elif provider == 'azure':
         return make_client_azure(**kwargs)
+    elif provider == 'google':
+        return make_client_google(**kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -149,6 +171,8 @@ def reply(query, provider, **kwargs):
         return reply_groq(query, **kwargs)
     elif provider == 'azure':
         return reply_azure(query, **kwargs)
+    elif provider == 'google':
+        return reply_google(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -165,6 +189,8 @@ def reply_async(query, provider, **kwargs):
         return reply_async_groq(query, **kwargs)
     elif provider == 'azure':
         return reply_async_azure(query, **kwargs)
+    elif provider == 'google':
+        return reply_async_google(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -181,6 +207,8 @@ def stream(query, provider, **kwargs):
         return stream_groq(query, **kwargs)
     elif provider == 'azure':
         return stream_azure(query, **kwargs)
+    elif provider == 'google':
+        return stream_google(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -197,6 +225,8 @@ def stream_async(query, provider, **kwargs):
         return stream_async_groq(query, **kwargs)
     elif provider == 'azure':
         return stream_async_azure(query, **kwargs)
+    elif provider == 'google':
+        return stream_async_google(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -207,6 +237,8 @@ def embed(text, provider, **kwargs):
         return embed_openai(text, **kwargs)
     elif provider == 'azure':
         return embed_azure(text, **kwargs)
+    elif provider == 'google':
+        return embed_google(text, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
