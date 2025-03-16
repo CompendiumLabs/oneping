@@ -26,18 +26,19 @@ def convert_role(role):
     else:
         return role
 
+def convert_content(content):
+    if type(content) is str:
+        return make_content(content)
+    else:
+        return make_content(content['text'], image=content.get('image'))
+
 def convert_history(history):
     if history is None:
         return None
     return [
         Content(
-            role=convert_role(
-                message['role']
-            ),
-            parts=make_content(
-                message['content']['text'],
-                image=message['content'].get('image')
-            )
+            role=convert_role(message['role']),
+            parts=convert_content(message['content'])
         )
         for message in history
     ]
