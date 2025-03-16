@@ -3,11 +3,10 @@
 from ..chat import Chat
 from ..utils import sprint
 
-from rich import print as rprint
-from prompt_toolkit import prompt
+from prompt_toolkit import prompt, print_formatted_text, HTML
 
-def print_header(name, color='green'):
-    rprint(f'[bold {color}]{name}>[/bold {color}] ', end='')
+def make_header(name, color='green'):
+    return HTML(f'<{color}>{name}></{color}> ')
 
 def loop(provider='local', name=None, **kwargs):
     # get name
@@ -20,8 +19,7 @@ def loop(provider='local', name=None, **kwargs):
     # main prompt loop
     while True:
         # get query
-        print_header('user', 'red')
-        query = prompt()
+        query = prompt(make_header('user', 'ansigreen'))
 
         # skip if empty
         if query.strip() == '':
@@ -29,7 +27,7 @@ def loop(provider='local', name=None, **kwargs):
 
         # stream reply
         print()
-        print_header(name, 'blue')
+        print_formatted_text(make_header(name, 'ansired'), end='')
         for s in chat.stream(query):
             sprint(s)
         print('\n')
