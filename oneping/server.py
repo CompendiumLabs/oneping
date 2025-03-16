@@ -53,7 +53,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
 
     class HistoryItem(BaseModel):
         role: Literal['user', 'assistant']
-        content: ContentItem
+        content: str | ContentItem
 
     class GenerateRequest(BaseModel):
         query: str
@@ -96,7 +96,7 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
     async def chat(genreq: GenerateRequest):
         data = genreq.model_dump(exclude_none=True)
         patch = patch_payload(data)
-        if patch.get('stream', False):
+        if patch.pop('stream', False):
             stream = stream_api(**kwargs, **patch)
             sse = generate_sse(stream)
             return StreamingResponse(sse, media_type='text/event-stream')

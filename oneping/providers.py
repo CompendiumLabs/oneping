@@ -85,7 +85,17 @@ def content_anthropic(text, image=None):
     ]
 
 def content_oneping(text, image=None):
+    if image is None:
+        return text
     return { 'image': image, 'text': text }
+
+##
+## history converters
+##
+
+def convert_content(content, content_func):
+    data = { 'text': content } if type(content) is str else content
+    return content_func(**data)
 
 def convert_history(history, content_func):
     if history is None:
@@ -93,10 +103,7 @@ def convert_history(history, content_func):
     return [
         {
             'role': item['role'],
-            'content': content_func(
-                item['content']['text'],
-                image=item['content'].get('image')
-            )
+            'content': convert_content(item['content'], content_func)
         }
         for item in history
     ]
@@ -128,6 +135,7 @@ def payload_anthropic(content, system=None, prefill=None, prediction=None, histo
     return payload
 
 def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
+    content = { 'text': content } if type(content) is str else content
     return {
         'query': content['text'],
         'image': content.get('image'),

@@ -1,21 +1,13 @@
 # chat interface
 
-from .providers import DEFAULT_SYSTEM
+from .providers import DEFAULT_SYSTEM, content_oneping
 from .api import reply, reply_async, stream, stream_async
 
 def history_update(query, text, image=None):
-    # make user message
-    user_content = {'text': query}
-    if image is not None:
-        user_content['image'] = image
-    user = { 'role': 'user', 'content': user_content }
-
-    # make assistant message
-    asst_content = {'text': text }
-    assistant = { 'role': 'assistant', 'content': asst_content }
-
-    # return history
-    return [user, assistant]
+    return [
+        { 'role': 'user', 'content': content_oneping(query, image) },
+        { 'role': 'assistant', 'content': text },
+    ]
 
 # chat interface
 class Chat:

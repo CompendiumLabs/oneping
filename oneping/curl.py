@@ -5,7 +5,9 @@ import json
 import requests
 import aiohttp
 
-from .providers import get_provider, get_embed_provider, DEFAULT_MAX_TOKENS
+from .providers import (
+    get_provider, get_embed_provider, convert_history, DEFAULT_MAX_TOKENS
+)
 
 ##
 ## printing
@@ -43,20 +45,6 @@ def prepare_model(prov, model=None):
         model = prov.get('model')
     return {'model': model} if model is not None else {}
 
-def convert_history(content, history):
-    if history is None:
-        return None
-    return [
-        {
-            'role': item['role'],
-            'content': content(
-                item['content']['text'],
-                image=item['content'].get('image')
-            )
-        }
-        for item in history
-    ]
-
 def prepare_request(
     query, provider='local', system=None, image=None, prefill=None, prediction=None, history=None,
     url=None, host=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
@@ -68,7 +56,7 @@ def prepare_request(
     payload_model = prepare_model(prov, model=model)
 
     # convert history to provider format
-    history = convert_history(prov['content'], history)
+    history = convert_history(history, prov['content'])
 
     # get extra headers
     headers_auth = prepare_auth(prov, api_key=api_key)
