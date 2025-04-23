@@ -43,8 +43,8 @@ def convert_history(history):
         for message in history
     ]
 
-def make_config(system=DEFAULT_SYSTEM, max_tokens=None):
-    return GenerateContentConfig(systemInstruction=system, maxOutputTokens=max_tokens)
+def make_config(system=DEFAULT_SYSTEM, max_tokens=None, **kwargs):
+    return GenerateContentConfig(systemInstruction=system, maxOutputTokens=max_tokens, **kwargs)
 
 def make_chat(client, model=GOOGLE_MODEL, history=None, **kwargs):
     config = make_config(**kwargs)
