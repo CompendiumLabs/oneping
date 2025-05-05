@@ -160,7 +160,7 @@ def make_client(provider, **kwargs):
     else:
         raise Exception(f'Provider {provider} not found')
 
-def reply(query, provider, **kwargs):
+def reply(query, provider, port=None, **kwargs):
     if provider == 'openai':
         return reply_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -178,7 +178,7 @@ def reply(query, provider, **kwargs):
     else:
         raise Exception(f'Provider {provider} not found')
 
-def reply_async(query, provider, **kwargs):
+def reply_async(query, provider, port=None, **kwargs):
     if provider == 'openai':
         return reply_async_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -196,7 +196,7 @@ def reply_async(query, provider, **kwargs):
     else:
         raise Exception(f'Provider {provider} not found')
 
-def stream(query, provider, **kwargs):
+def stream(query, provider, port=None, **kwargs):
     if provider == 'openai':
         return stream_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -214,7 +214,7 @@ def stream(query, provider, **kwargs):
     else:
         raise Exception(f'Provider {provider} not found')
 
-def stream_async(query, provider, **kwargs):
+def stream_async(query, provider, port=None, **kwargs):
     if provider == 'openai':
         return stream_async_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -232,7 +232,7 @@ def stream_async(query, provider, **kwargs):
     else:
         raise Exception(f'Provider {provider} not found')
 
-def embed(text, provider, **kwargs):
+def embed(text, provider, port=None, **kwargs):
     if provider == 'openai':
         return embed_openai(text, **kwargs)
     elif provider == 'azure':
@@ -244,7 +244,7 @@ def embed(text, provider, **kwargs):
     else:
         raise Exception(f'Provider {provider} does not support embeddings')
 
-def transcribe(audio, provider, **kwargs):
+def transcribe(audio, provider, port=None, **kwargs):
     if provider == 'openai':
         return transcribe_openai(audio, **kwargs)
     elif provider == 'azure':

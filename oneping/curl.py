@@ -5,9 +5,7 @@ import json
 import requests
 import aiohttp
 
-from .providers import (
-    get_provider, get_embed_provider, convert_history, DEFAULT_MAX_TOKENS
-)
+from .providers import get_provider, convert_history, DEFAULT_MAX_TOKENS
 
 ##
 ## printing
@@ -25,11 +23,15 @@ def print_dryrun(url, headers, payload):
 ## payloads
 ##
 
-def prepare_url(prov, url=None, host=None, port=None):
-    host = prov.get('host') if host is None else host
-    port = prov.get('port') if port is None else port
-    url = prov.get('url') if url is None else url
-    return url.format(host=host, port=port)
+def prepare_url(prov, path_key, base_url=None, path=None):
+    base_url = prov.get('base_url') if base_url is None else base_url
+    path = prov.get(path_key) if path is None else path
+    return f'{base_url}/{path}'
+
+def prepare_model(prov, model_key, model=None):
+    if model is None:
+        model = prov.get(model_key)
+    return {'model': model} if model is not None else {}
 
 def prepare_auth(prov, api_key=None):
     if (auth_func := prov.get('authorize')) is not None:
@@ -40,20 +42,15 @@ def prepare_auth(prov, api_key=None):
         headers_auth = {}
     return headers_auth
 
-def prepare_model(prov, model=None):
-    if model is None:
-        model = prov.get('model')
-    return {'model': model} if model is not None else {}
-
 def prepare_request(
     query, provider='local', system=None, image=None, prefill=None, prediction=None, history=None,
-    url=None, host=None, port=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
+    base_url=None, path=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider details
     prov = get_provider(provider)
-    max_tokens_name = prov.get('max_tokens_name', 'max_tokens')
-    url = prepare_url(prov, url=url, host=host, port=port)
-    payload_model = prepare_model(prov, model=model)
+    max_tokens_name = prov.get('max_tokens_name', 'max_completion_tokens')
+    url = prepare_url(prov, 'chat_path', base_url=base_url, path=path)
+    payload_model = prepare_model(prov, 'chat_model', model=model)
 
     # convert history to provider format
     history = convert_history(history, prov['content'])
@@ -225,19 +222,19 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
 ## embeddings
 ##
 
-def embed(text, provider='local', url=None, port=None, api_key=None, model=None, **kwargs):
+def embed(text, provider='local', base_url=None, path=None, api_key=None, model=None, **kwargs):
     # get provider details
-    prov = get_embed_provider(provider)
-    url = prepare_url(prov, url=url, port=port)
-    extractor = prov['embed']
+    prov = get_provider(provider)
+    url = prepare_url(prov, 'embed_path', base_url=base_url, path=path)
+    payload_model = prepare_model(prov, 'embed_model', model=model)
 
-    # get extra headers and model
+    # get extra headers
     headers_auth = prepare_auth(prov, api_key=api_key)
-    payload_model = prepare_model(prov, model=model)
+    headers_extra = prov.get('headers', {})
 
     # compose request
-    headers = {'Content-Type': 'application/json', **headers_auth}
-    payload = {'input': text, **payload_model}
+    headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
+    payload = {'input': text, **payload_model, **kwargs}
 
     # make the request
     response = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -245,7 +242,7 @@ def embed(text, provider='local', url=None, port=None, api_key=None, model=None,
 
     # extract text
     data = response.json()
-    vecs = extractor(data)
+    vecs = prov['embed'](data)
 
     # return text
     return vecs

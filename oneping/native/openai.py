@@ -4,7 +4,7 @@ import os
 import openai
 
 from ..providers import (
-    DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, OPENAI_WHISPER, OPENAI_KEYENV,
+    DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, OPENAI_TRANSCRIBE, OPENAI_KEYENV,
     content_openai, convert_history, payload_openai,
     response_openai_native, stream_openai_native,
     embed_openai, transcribe_openai
@@ -59,7 +59,7 @@ def embed(query, model=OPENAI_EMBED, api_key=None, **kwargs):
     response = client.embeddings.create(model=model, **kwargs)
     return embed_openai(response)
 
-def transcribe(audio, model=OPENAI_WHISPER, api_key=None, **kwargs):
+def transcribe(audio, model=OPENAI_TRANSCRIBE, api_key=None, **kwargs):
     client = make_client(api_key=api_key)
     response = client.audio.transcriptions.create(model=model, **kwargs)
     return transcribe_openai(response)

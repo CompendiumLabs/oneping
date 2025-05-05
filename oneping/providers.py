@@ -13,10 +13,10 @@ DEFAULT_MAX_TOKENS = 1024
 ## models
 ##
 
-OPENAI_MODEL = 'gpt-4o'
-OPENAI_EMBED = 'text-embedding-3-small'
-OPENAI_WHISPER = 'whisper-1'
-ANTHROPIC_MODEL = 'claude-3-5-sonnet-latest'
+OPENAI_MODEL = 'gpt-4.1'
+OPENAI_EMBED = 'text-embedding-3-large'
+OPENAI_TRANSCRIBE = 'gpt-4o-transcribe'
+ANTHROPIC_MODEL = 'claude-3-7-sonnet-latest'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p3-70b-instruct'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
 DEEPSEEK_MODEL = 'deepseek-chat'
@@ -42,7 +42,6 @@ GOOGLE_KEYENV = 'GEMINI_API_KEY'
 AZURE_API_VERSION = '2024-10-21'
 ANTHROPIC_HEADERS = {
     'anthropic-version': '2023-06-01',
-    'anthropic-beta': 'prompt-caching-2024-07-31',
 }
 
 ##
@@ -131,7 +130,11 @@ def payload_anthropic(content, system=None, prefill=None, prediction=None, histo
         messages.append({'role': 'assistant', 'content': prefill})
     payload = {'messages': messages}
     if system is not None:
-        payload['system'] = system
+        payload['system'] = [{
+            'text': system,
+            'type': 'text',
+            'cache_control': {'type': 'ephemeral'},
+        }]
     return payload
 
 def payload_oneping(content, system=None, prefill=None, prediction=None, history=None):
@@ -212,6 +215,10 @@ def transcribe_openai(audio):
 ##
 
 DEFAULT_PROVIDER = {
+    'chat_path': 'chat/completions',
+    'embed_path': 'embeddings',
+    'transcribe_path': 'audio/transcriptions',
+    'authorize': authorize_openai,
     'content': content_openai,
     'payload': payload_openai,
     'response': response_openai,
@@ -222,56 +229,58 @@ DEFAULT_PROVIDER = {
 # presets for known llm providers
 LLM_PROVIDERS = {
     'local': {
-        'url': 'http://{host}:{port}/v1/chat/completions',
-        'host': 'localhost',
-        'port': 8000,
+        'base_url': 'http://localhost:8000/v1',
+        'authorize': None,
     },
     'oneping': {
-        'url': 'http://{host}:{port}/chat',
-        'host': 'localhost',
-        'port': 5000,
+        'base_url': 'http://localhost:5000',
+        'chat_path': 'chat',
         'authorize': None,
+        'max_tokens_name': 'max_tokens',
         'content': content_oneping,
         'payload': payload_oneping,
         'response': response_oneping,
         'stream': stream_oneping,
     },
     'openai': {
-        'url': 'https://api.openai.com/v1/chat/completions',
-        'authorize': authorize_openai,
-        'max_tokens_name': 'max_completion_tokens',
+        'base_url': 'https://api.openai.com/v1',
         'api_key_env': OPENAI_KEYENV,
-        'model': OPENAI_MODEL,
+        'chat_model': OPENAI_MODEL,
+        'embed_model': OPENAI_EMBED,
     },
     'anthropic': {
-        'url': 'https://api.anthropic.com/v1/messages',
+        'base_url': 'https://api.anthropic.com/v1',
+        'chat_path': 'messages',
+        'max_tokens_name': 'max_tokens',
         'content': content_anthropic,
         'payload': payload_anthropic,
         'authorize': authorize_anthropic,
         'response': response_anthropic,
         'stream': stream_anthropic,
         'api_key_env': ANTHROPIC_KEYENV,
-        'model': ANTHROPIC_MODEL,
+        'chat_model': ANTHROPIC_MODEL,
         'headers': ANTHROPIC_HEADERS,
     },
+    'google': {
+        'base_url': 'https://generativelanguage.googleapis.com/v1beta/openai',
+        'api_key_env': GOOGLE_KEYENV,
+        'chat_model': GOOGLE_MODEL,
+        'embed_model': GOOGLE_EMBED,
+    },
     'fireworks': {
-        'url': 'https://api.fireworks.ai/inference/v1/chat/completions',
-        'authorize': authorize_openai,
+        'base_url': 'https://api.fireworks.ai/inference',
         'api_key_env': FIREWORKS_KEYENV,
-        'model': FIREWORKS_MODEL,
+        'chat_model': FIREWORKS_MODEL,
     },
     'groq': {
-        'url': 'https://api.groq.com/openai/v1/chat/completions',
-        'authorize': authorize_openai,
-        'max_tokens_name': 'max_completion_tokens',
+        'base_url': 'https://api.groq.com/openai',
         'api_key_env': GROQ_KEYENV,
-        'model': GROQ_MODEL,
+        'chat_model': GROQ_MODEL,
     },
     'deepseek': {
-        'url': 'https://api.deepseek.com/chat/completions',
-        'authorize': authorize_openai,
+        'base_url': 'https://api.deepseek.com',
         'api_key_env': DEEPSEEK_KEYENV,
-        'model': DEEPSEEK_MODEL,
+        'chat_model': DEEPSEEK_MODEL,
     },
 }
 
@@ -279,29 +288,3 @@ def get_provider(provider):
     if type(provider) is str:
         provider = LLM_PROVIDERS[provider]
     return {**DEFAULT_PROVIDER, **provider}
-
-##
-## embedding providers
-##
-
-DEFAULT_EMBED = {
-    'authorize': authorize_openai,
-    'embed': embed_openai,
-}
-
-EMBED_PROVIDERS = {
-    'local': {
-        'url': 'http://{host}:{port}/v1/embeddings',
-        'authorize': None,
-    },
-    'openai': {
-        'url': 'https://api.openai.com/v1/embeddings',
-        'api_key_env': 'OPENAI_API_KEY',
-        'model': 'text-embedding-3-small',
-    },
-}
-
-def get_embed_provider(provider):
-    if type(provider) is str:
-        provider = EMBED_PROVIDERS[provider]
-    return {**DEFAULT_EMBED, **provider}
