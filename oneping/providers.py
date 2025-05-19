@@ -229,7 +229,7 @@ DEFAULT_PROVIDER = {
 # presets for known llm providers
 LLM_PROVIDERS = {
     'local': {
-        'base_url': 'http://localhost:8000/v1',
+        'base_url': 'http://localhost:8080/v1',
         'authorize': None,
     },
     'oneping': {

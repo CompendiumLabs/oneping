@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# get screenshot
+image_path=$(mktemp --suffix=.png)
+slurp | grim -g - $image_path
+
+# call oneping stream
+python3.12 -m oneping stream --image $image_path "$@"
+
+# remove image
+rm $image_path
+
