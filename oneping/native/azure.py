@@ -4,7 +4,7 @@ import os
 import openai
 
 from ..providers import (
-    DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, OPENAI_WHISPER, AZURE_API_VERSION, AZURE_KEYENV,
+    DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, OPENAI_TRANSCRIBE, AZURE_API_VERSION, AZURE_KEYENV,
     content_openai, convert_history, payload_openai,
     response_openai_native, stream_openai_native,
     embed_openai, transcribe_openai
@@ -74,7 +74,7 @@ def embed(
     return embed_openai(response)
 
 def transcribe(
-    audio, model=OPENAI_WHISPER, azure_endpoint=None, azure_deployment=None, api_version=AZURE_API_VERSION, api_key=None, **kwargs
+    audio, model=OPENAI_TRANSCRIBE, azure_endpoint=None, azure_deployment=None, api_version=AZURE_API_VERSION, api_key=None, **kwargs
 ):
     client = make_client(azure_endpoint, azure_deployment=azure_deployment, api_version=api_version, api_key=api_key)
     response = client.audio.transcriptions.create(model=model, file=audio, **kwargs)
