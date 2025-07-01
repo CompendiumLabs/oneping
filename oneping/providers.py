@@ -13,7 +13,7 @@ DEFAULT_MAX_TOKENS = 1024
 ## models
 ##
 
-OPENAI_MODEL = 'gpt-4.1'
+OPENAI_MODEL = 'gpt-4o'
 OPENAI_EMBED = 'text-embedding-3-large'
 OPENAI_TRANSCRIBE = 'gpt-4o-transcribe'
 ANTHROPIC_MODEL = 'claude-3-7-sonnet-latest'
