@@ -1,13 +1,15 @@
 # default arguments
 
-from .utils import load_image_uri, parse_image_uri
+import os
+
+from .utils import parse_image_uri
 
 ##
 ## system prompt
 ##
 
-DEFAULT_SYSTEM = 'You are a helpful and knowledgeable AI assistant. Answer the queries provided to the best of your ability.'
-DEFAULT_MAX_TOKENS = 1024
+DEFAULT_SYSTEM = os.environ.get('ONEPING_SYSTEM', None)
+DEFAULT_MAX_TOKENS = int(os.environ.get('ONEPING_MAX_TOKENS', 1024))
 
 ##
 ## models

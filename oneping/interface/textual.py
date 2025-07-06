@@ -256,7 +256,8 @@ class TextualChat(App):
 
     def compose(self):
         yield Header(id='header')
-        yield Sidebar(convo=self.store.convo)
+        if self.store is not None:
+            yield Sidebar(convo=self.store.convo)
         yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
@@ -268,7 +269,9 @@ class TextualChat(App):
             self.show_sidebar = not self.show_sidebar
 
     def watch_show_sidebar(self, show_sidebar):
-        self.query_one(Sidebar).set_class(show_sidebar, "-visible")
+        if self.store is not None:
+            sidebar = self.query_one(Sidebar)
+            sidebar.set_class(show_sidebar, "-visible")
 
 # textual powered chat interface
 def main(store=None, **kwargs):
