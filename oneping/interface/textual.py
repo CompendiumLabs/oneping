@@ -4,16 +4,13 @@ import re
 import os
 import datetime
 
-from textual import on, work
-from textual.app import App, ComposeResult
+from textual import work, Logger
+from textual.app import App
 from textual.widget import Widget
-from textual.widgets import Header, Input, Static, Markdown, Label
+from textual.widgets import Header, Static, Markdown, Label, TextArea
 from textual.containers import Vertical, VerticalScroll
-from textual.events import Key
 from textual.reactive import reactive
-from rich.style import Style
-from rich.text import Text
-from rich.panel import Panel
+from textual.message import Message
 
 from ..utils import cumcat
 from ..chat import Chat
@@ -34,38 +31,6 @@ role_colors = {
 ##
 
 class Sidebar(Widget):
-    DEFAULT_CSS = """
-    Sidebar {
-        width: 30;
-        layer: sidebar;
-        dock: left;
-        offset-x: -100%;
-
-        border-right: #cccccc;
-
-        transition: offset 100ms;
-
-        &.-visible {
-            offset-x: 0;
-        }
-
-        & > Vertical {
-            margin: 1 2;
-        }
-    }
-
-    #history_title {
-        width: 100%;
-        text-align: center;
-        border: round #d576f6;
-    }
-
-    Sidebar > Vertical > Label {
-        margin-bottom: 1;
-        text-wrap: wrap;
-    }
-    """
-
     def __init__(self, convo, **kwargs):
         super().__init__(**kwargs)
         self.convo = convo
@@ -82,13 +47,6 @@ class Sidebar(Widget):
 ##
 
 class ChatMessage(Markdown):
-    DEFAULT_CSS = """
-    ChatMessage {
-        padding: 0 1;
-        margin: 0 0;
-    }
-    """
-
     def __init__(self, title, text, **kwargs):
         super().__init__(text, **kwargs)
         self.border_title = title
@@ -103,17 +61,13 @@ class ChatMessage(Markdown):
             pass
 
     def update(self, text):
+        if len(text.strip()) == 0:
+            text = '...'
         self._text = text
         return super().update(text)
 
 # chat history widget
 class ChatHistory(VerticalScroll):
-    DEFAULT_CSS = """
-    ChatHistory {
-        scrollbar-size-vertical: 0;
-    }
-    """
-
     def __init__(self, system=None, **kwargs):
         super().__init__(**kwargs)
         self.system = system
@@ -122,32 +76,25 @@ class ChatHistory(VerticalScroll):
         if self.system is not None:
             yield ChatMessage('system', self.system)
 
-class BareQuery(Input):
-    DEFAULT_CSS = """
-    BareQuery {
-        background: transparent;
-        padding: 0 1;
-    }
-    """
-
-    def __init__(self, height, **kwargs):
-        super().__init__(**kwargs)
-        self.styles.border = ('none', None)
-        self.styles.height = height
-
-class ChatInput(Static):
-    DEFAULT_CSS = """
-    ChatInput {
-        border: round white;
-    }
-    """
+class ChatInput(TextArea):
+    class Submitted(Message):
+        def __init__(self, text: str) -> None:
+            self.text = text
+            super().__init__()
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.border_title = 'user'
+        super().__init__(highlight_cursor_line=False, **kwargs)
 
-    def compose(self):
-        yield BareQuery(height=3, placeholder='Type a message...')
+    def on_key(self, event):
+        if event.key == 'ctrl+enter':
+            self.insert('\n')
+            event.prevent_default()
+        elif event.key == 'enter':
+            if len(query := self.text.strip()) > 0:
+                message = self.Submitted(query)
+                self.post_message(message)
+                self.clear()
+            event.prevent_default()
 
 # textualize chat app
 class ChatWindow(Static):
@@ -162,24 +109,19 @@ class ChatWindow(Static):
 
     def on_key(self, event):
         history = self.query_one('ChatHistory')
-        if event.key == 'PageUp':
+        if event.key == 'pageup':
             history.scroll_up(animate=False)
-        elif event.key == 'PageDown':
+        elif event.key == 'pagedown':
             history.scroll_down(animate=False)
 
-    @on(Input.Submitted)
-    async def on_input(self, event):
-        query = self.query_one('BareQuery')
-        history = self.query_one('ChatHistory')
+    async def on_chat_input_submitted(self, message):
+        await self.submit_query(message.text)
 
-        # ignore empty messages
-        if len(message := query.value) == 0:
-            return
-        query.clear()
-
+    async def submit_query(self, query):
         # mount user query and start response
+        history = self.query_one('ChatHistory')
         response = ChatMessage('assistant', '...')
-        await history.mount(ChatMessage('user', message))
+        await history.mount(ChatMessage('user', query))
         await history.mount(response)
 
         # make update method
@@ -188,13 +130,15 @@ class ChatWindow(Static):
             history.scroll_end(animate=False)
 
         # send message
-        generate = self.stream(message)
+        generate = self.stream(query)
+        self.log.debug(f'STARTING STREAM: {query}')
         self.pipe_stream(generate, update)
 
     @work(thread=True)
     async def pipe_stream(self, generate, setter):
         async for reply in cumcat(generate):
             self.app.call_from_thread(setter, reply)
+        self.log.debug('STREAM DONE')
 
 class ConvoStore:
     def __init__(self, store):
@@ -242,6 +186,63 @@ class ConvoStore:
             self.convo[file] = self.load_convo(path)
 
 class TextualChat(App):
+    CSS = """
+    ChatMessage {
+        background: transparent;
+        padding: 0 1;
+        margin: 0 0;
+    }
+
+    ChatHistory {
+        scrollbar-size-vertical: 0;
+    }
+
+    ChatInput {
+        background: transparent;
+        border: round white;
+        padding: 0 1;
+        height: 6;
+    }
+
+    ChatInput > TextArea {
+        height: 100%;
+    }
+
+    ChatWindow {
+        background: transparent;
+    }
+
+    Sidebar {
+        width: 30;
+        layer: sidebar;
+        dock: left;
+        offset-x: -100%;
+
+        border-right: #cccccc;
+
+        transition: offset 100ms;
+
+        &.-visible {
+            offset-x: 0;
+        }
+
+        & > Vertical {
+            margin: 1 2;
+        }
+    }
+
+    #history_title {
+        width: 100%;
+        text-align: center;
+        border: round #d576f6;
+    }
+
+    Sidebar > Vertical > Label {
+        margin-bottom: 1;
+        text-wrap: wrap;
+    }
+    """
+
     show_sidebar = reactive(False)
 
     def __init__(self, chat, store=None, **kwargs):
@@ -262,25 +263,18 @@ class TextualChat(App):
         yield ChatWindow(self.chat.stream_async, system=self.chat.system)
 
     def on_mount(self):
-        query = self.query_one('BareQuery')
+        query = self.query_one('ChatInput')
         history = self.query_one('ChatHistory')
         self.set_focus(query)
         history.scroll_end(animate=False)
 
     def on_key(self, event):
-        if event.key in ('up', 'down', 'pageup', 'pagedown'):
-            history = self.query_one('ChatHistory')
-            if event.key == 'up':
-                history.scroll_up(animate=False)
-            elif event.key == 'down':
-                history.scroll_down(animate=False)
-            elif event.key == 'pageup':
-                history.scroll_page_up(animate=False)
-            elif event.key == 'pagedown':
-                history.scroll_page_down(animate=False)
-        elif event.key == 'ctrl+s':
+        if event.key == 'ctrl+s':
             if self.store is not None:
                 self.show_sidebar = not self.show_sidebar
+            event.prevent_default()
+        elif event.key == 'ctrl+c':
+            self.exit()
             event.prevent_default()
 
     def watch_show_sidebar(self, show_sidebar):
