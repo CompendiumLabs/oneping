@@ -139,6 +139,26 @@ except ImportError:
     stream_async_google = dummy_google
 
 ##
+## xai
+##
+
+try:
+    from .xai import (
+        make_client as make_client_xai,
+        reply as reply_xai,
+        stream as stream_xai,
+        reply_async as reply_async_xai,
+        stream_async as stream_async_xai,
+    )
+except ImportError:
+    dummy_xai = DummyFunction('xai')
+    make_client_xai = dummy_xai
+    reply_xai = dummy_xai
+    stream_xai = dummy_xai
+    reply_async_xai = dummy_xai
+    stream_async_xai = dummy_xai
+
+##
 ## router
 ##
 
@@ -155,6 +175,8 @@ def make_client(provider, **kwargs):
         return make_client_azure(**kwargs)
     elif provider == 'google':
         return make_client_google(**kwargs)
+    elif provider == 'xai':
+        return make_client_xai(**kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -173,6 +195,8 @@ def reply(query, provider, port=None, **kwargs):
         return reply_azure(query, **kwargs)
     elif provider == 'google':
         return reply_google(query, **kwargs)
+    elif provider == 'xai':
+        return reply_xai(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -209,6 +233,8 @@ def stream(query, provider, port=None, **kwargs):
         return stream_azure(query, **kwargs)
     elif provider == 'google':
         return stream_google(query, **kwargs)
+    elif provider == 'xai':
+        return stream_xai(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -227,6 +253,8 @@ def stream_async(query, provider, port=None, **kwargs):
         return stream_async_azure(query, **kwargs)
     elif provider == 'google':
         return stream_async_google(query, **kwargs)
+    elif provider == 'xai':
+        return stream_async_xai(query, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:
@@ -237,8 +265,6 @@ def embed(text, provider, port=None, **kwargs):
         return embed_openai(text, **kwargs)
     elif provider == 'azure':
         return embed_azure(text, **kwargs)
-    elif provider == 'google':
-        return embed_google(text, **kwargs)
     elif provider == 'local':
         raise Exception('Local provider does not support native requests')
     else:

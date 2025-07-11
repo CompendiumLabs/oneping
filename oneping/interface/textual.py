@@ -96,8 +96,11 @@ class ChatMessage(Markdown):
         self._text = text
 
     def on_click(self, event):
-        import pyperclip
-        pyperclip.copy(self._text)
+        try:
+            import pyperclip
+            pyperclip.copy(self._text)
+        except Exception:
+            pass
 
     def update(self, text):
         self._text = text
@@ -182,7 +185,7 @@ class ChatWindow(Static):
         # make update method
         def update(reply):
             response.update(reply)
-            history.scroll_end()
+            history.scroll_end(animate=False)
 
         # send message
         generate = self.stream(message)
@@ -239,8 +242,6 @@ class ConvoStore:
             self.convo[file] = self.load_convo(path)
 
 class TextualChat(App):
-    BINDINGS = [("ctrl+s", "toggle_sidebar", "Toggle Sidebar")]
-
     show_sidebar = reactive(False)
 
     def __init__(self, chat, store=None, **kwargs):
@@ -262,11 +263,25 @@ class TextualChat(App):
 
     def on_mount(self):
         query = self.query_one('BareQuery')
+        history = self.query_one('ChatHistory')
         self.set_focus(query)
+        history.scroll_end(animate=False)
 
-    def action_toggle_sidebar(self):
-        if self.store is not None:
-            self.show_sidebar = not self.show_sidebar
+    def on_key(self, event):
+        if event.key in ('up', 'down', 'pageup', 'pagedown'):
+            history = self.query_one('ChatHistory')
+            if event.key == 'up':
+                history.scroll_up(animate=False)
+            elif event.key == 'down':
+                history.scroll_down(animate=False)
+            elif event.key == 'pageup':
+                history.scroll_page_up(animate=False)
+            elif event.key == 'pagedown':
+                history.scroll_page_down(animate=False)
+        elif event.key == 'ctrl+s':
+            if self.store is not None:
+                self.show_sidebar = not self.show_sidebar
+            event.prevent_default()
 
     def watch_show_sidebar(self, show_sidebar):
         if self.store is not None:

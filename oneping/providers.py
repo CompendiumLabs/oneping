@@ -9,7 +9,7 @@ from .utils import parse_image_uri
 ##
 
 DEFAULT_SYSTEM = os.environ.get('ONEPING_SYSTEM', None)
-DEFAULT_MAX_TOKENS = int(os.environ.get('ONEPING_MAX_TOKENS', 1024))
+DEFAULT_MAX_TOKENS = int(os.environ.get('ONEPING_MAX_TOKENS', 2048))
 
 ##
 ## models
@@ -24,6 +24,7 @@ GROQ_MODEL = 'llama-3.3-70b-versatile'
 DEEPSEEK_MODEL = 'deepseek-chat'
 GOOGLE_MODEL = 'gemini-2.0-flash-exp'
 GOOGLE_EMBED = 'gemini-embedding-exp-03-07'
+XAI_MODEL = 'grok-4'
 
 ##
 ## environment key names
@@ -36,6 +37,7 @@ GROQ_KEYENV = 'GROQ_API_KEY'
 DEEPSEEK_KEYENV = 'DEEPSEEK_API_KEY'
 AZURE_KEYENV = 'AZURE_OPENAI_API_KEY'
 GOOGLE_KEYENV = 'GEMINI_API_KEY'
+XAI_KEYENV = 'XAI_API_KEY'
 
 ##
 ## options
@@ -268,6 +270,11 @@ LLM_PROVIDERS = {
         'api_key_env': GOOGLE_KEYENV,
         'chat_model': GOOGLE_MODEL,
         'embed_model': GOOGLE_EMBED,
+    },
+    'xai': {
+        'base_url': 'https://api.x.ai/v1',
+        'api_key_env': XAI_KEYENV,
+        'chat_model': XAI_MODEL,
     },
     'fireworks': {
         'base_url': 'https://api.fireworks.ai/inference',
