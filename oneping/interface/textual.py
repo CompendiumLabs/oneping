@@ -46,12 +46,19 @@ class Sidebar(Widget):
 ## widgets
 ##
 
+def make_text(text, gen=False):
+    return f'{text} {" ..." if gen else ""}'
+
 class ChatMessage(Markdown):
-    def __init__(self, title, text, **kwargs):
-        super().__init__(text, **kwargs)
+    generating = reactive(False)
+
+    def __init__(self, title, text, gen=False, **kwargs):
+        text0 = make_text(text, gen)
+        super().__init__(text0, **kwargs)
         self.border_title = title
         self.styles.border = ('round', role_colors[title])
         self._text = text
+        self.generating = gen
 
     def on_click(self, event):
         try:
@@ -60,11 +67,16 @@ class ChatMessage(Markdown):
         except Exception:
             pass
 
-    def update(self, text):
-        if len(text.strip()) == 0:
-            text = '...'
-        self._text = text
-        return super().update(text)
+    def update_text(self, text=None):
+        if text is None:
+            text = self._text
+        else:
+            self._text = text
+        disp = make_text(text, self.generating)
+        return super().update(disp)
+
+    def watch_generating(self, generating):
+        self.update_text()
 
 # chat history widget
 class ChatHistory(VerticalScroll):
@@ -118,15 +130,22 @@ class ChatWindow(Static):
         await self.submit_query(message.text)
 
     async def submit_query(self, query):
-        # mount user query and start response
+        # make new messages
+        user = ChatMessage('user', query, gen=False)
+        response = ChatMessage('assistant', '', gen=True)
+
+        # mount new messages
         history = self.query_one('ChatHistory')
-        response = ChatMessage('assistant', '...')
-        await history.mount(ChatMessage('user', query))
+        await history.mount(user)
         await history.mount(response)
 
         # make update method
         def update(reply):
-            response.update(reply)
+            if reply is None:
+                self.log.debug('STREAM DONE')
+                response.generating = False
+                return
+            response.update_text(reply)
             history.scroll_end(animate=False)
 
         # send message
@@ -138,7 +157,7 @@ class ChatWindow(Static):
     async def pipe_stream(self, generate, setter):
         async for reply in cumcat(generate):
             self.app.call_from_thread(setter, reply)
-        self.log.debug('STREAM DONE')
+        self.app.call_from_thread(setter, None)
 
 class ConvoStore:
     def __init__(self, store):
