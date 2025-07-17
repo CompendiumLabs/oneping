@@ -101,8 +101,11 @@ def start_router(host='127.0.0.1', port=5000, allow_origins=DEFAULT_ALLOW_ORIGIN
             sse = generate_sse(stream)
             return StreamingResponse(sse, media_type='text/event-stream')
         else:
-            reply = reply_api(**kwargs, **patch)
-            return JSONResponse(reply)
+            try:
+                reply = reply_api(**kwargs, **patch)
+                return JSONResponse({'success': True, 'data': reply})
+            except Exception as e:
+                return JSONResponse({'success': False, 'data': str(e)})
 
     # start server
     uvicorn.run(app, host=host, port=port)
