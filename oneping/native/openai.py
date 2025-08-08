@@ -28,38 +28,38 @@ def make_client(api_key=None, async_client=False):
     client_class = openai.AsyncOpenAI if async_client else openai.OpenAI
     return client_class(api_key=api_key)
 
-def reply(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, **kwargs):
-    client = make_client(api_key=api_key)
+def reply(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, base_url=None, **kwargs):
+    client = make_client(api_key=api_key, base_url=base_url)
     payload = make_payload(query, image=image, prediction=prediction, system=system, history=history)
     response = client.chat.completions.create(model=model, max_completion_tokens=max_tokens, **payload, **kwargs)
     return response_openai_native(response)
 
-async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, **kwargs):
-    client = make_client(api_key=api_key, async_client=True)
+async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, base_url=None, **kwargs):
+    client = make_client(api_key=api_key, async_client=True, base_url=base_url)
     payload = make_payload(query, image=image, prediction=prediction, system=system, history=history)
     response = await client.chat.completions.create(model=model, max_completion_tokens=max_tokens, **payload, **kwargs)
     return response_openai_native(response)
 
-def stream(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, **kwargs):
-    client = make_client(api_key=api_key)
+def stream(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, base_url=None, **kwargs):
+    client = make_client(api_key=api_key, base_url=base_url)
     payload = make_payload(query, image=image, prediction=prediction, system=system, history=history)
     response = client.chat.completions.create(model=model, stream=True, max_completion_tokens=max_tokens, **payload, **kwargs)
     for chunk in response:
         yield stream_openai_native(chunk)
 
-async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, **kwargs):
-    client = make_client(api_key=api_key, async_client=True)
+async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, base_url=None, **kwargs):
+    client = make_client(api_key=api_key, async_client=True, base_url=base_url)
     payload = make_payload(query, image=image, prediction=prediction, system=system, history=history)
     response = await client.chat.completions.create(model=model, stream=True, max_completion_tokens=max_tokens, **payload, **kwargs)
     async for chunk in response:
         yield stream_openai_native(chunk)
 
-def embed(query, model=OPENAI_EMBED, api_key=None, **kwargs):
-    client = make_client(api_key=api_key)
-    response = client.embeddings.create(model=model, **kwargs)
+def embed(query, model=OPENAI_EMBED, api_key=None, base_url=None, **kwargs):
+    client = make_client(api_key=api_key, base_url=base_url)
+    response = client.embeddings.create(query, model=model, **kwargs)
     return embed_openai(response)
 
-def transcribe(audio, model=OPENAI_TRANSCRIBE, api_key=None, **kwargs):
-    client = make_client(api_key=api_key)
-    response = client.audio.transcriptions.create(model=model, **kwargs)
+def transcribe(audio, model=OPENAI_TRANSCRIBE, api_key=None, base_url=None, **kwargs):
+    client = make_client(api_key=api_key, base_url=base_url)
+    response = client.audio.transcriptions.create(audio, model=model, **kwargs)
     return transcribe_openai(response)
