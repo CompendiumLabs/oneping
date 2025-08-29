@@ -13,6 +13,6 @@ from .native import (
     stream_async as stream_async_native,
     embed as embed_native,
 )
-from .api import reply, reply_async, stream, stream_async, embed
+from .api import reply, reply_async, stream, stream_async, embed, tokenize
 from .chat import Chat
 from .server import start_llama_cpp, start_router

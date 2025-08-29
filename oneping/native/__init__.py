@@ -1,6 +1,13 @@
 # native library interfaces
 
 ##
+## local providers
+##
+
+def has_native(provider):
+    return provider not in ('llama.cpp', 'tei', 'vllm', 'oneping')
+
+##
 ## dummy function
 ##
 
@@ -177,12 +184,12 @@ def make_client(provider, **kwargs):
         return make_client_google(**kwargs)
     elif provider == 'xai':
         return make_client_xai(**kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def reply(query, provider, port=None, **kwargs):
+def reply(query, provider, **kwargs):
     if provider == 'openai':
         return reply_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -197,12 +204,12 @@ def reply(query, provider, port=None, **kwargs):
         return reply_google(query, **kwargs)
     elif provider == 'xai':
         return reply_xai(query, **kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def reply_async(query, provider, port=None, **kwargs):
+def reply_async(query, provider, **kwargs):
     if provider == 'openai':
         return reply_async_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -215,12 +222,12 @@ def reply_async(query, provider, port=None, **kwargs):
         return reply_async_azure(query, **kwargs)
     elif provider == 'google':
         return reply_async_google(query, **kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def stream(query, provider, port=None, **kwargs):
+def stream(query, provider, **kwargs):
     if provider == 'openai':
         return stream_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -235,12 +242,12 @@ def stream(query, provider, port=None, **kwargs):
         return stream_google(query, **kwargs)
     elif provider == 'xai':
         return stream_xai(query, **kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def stream_async(query, provider, port=None, **kwargs):
+def stream_async(query, provider, **kwargs):
     if provider == 'openai':
         return stream_async_openai(query, **kwargs)
     elif provider == 'anthropic':
@@ -255,27 +262,33 @@ def stream_async(query, provider, port=None, **kwargs):
         return stream_async_google(query, **kwargs)
     elif provider == 'xai':
         return stream_async_xai(query, **kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} not found')
 
-def embed(text, provider, port=None, **kwargs):
+def embed(text, provider, **kwargs):
     if provider == 'openai':
         return embed_openai(text, **kwargs)
     elif provider == 'azure':
         return embed_azure(text, **kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} does not support embeddings')
 
-def transcribe(audio, provider, port=None, **kwargs):
+def tokenize(text, provider, **kwargs):
+    if not has_native(provider):
+        raise Exception('Local provider does not support native requests')
+    else:
+        raise Exception(f'Provider {provider} does not support tokenizing')
+
+def transcribe(audio, provider, **kwargs):
     if provider == 'openai':
         return transcribe_openai(audio, **kwargs)
     elif provider == 'azure':
         return transcribe_azure(audio, **kwargs)
-    elif provider == 'local':
+    elif not has_native(provider):
         raise Exception('Local provider does not support native requests')
     else:
         raise Exception(f'Provider {provider} does not support transcribing')

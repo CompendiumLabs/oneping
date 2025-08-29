@@ -205,11 +205,48 @@ def stream_anthropic_native(chunk):
         return ''
 
 ##
-## other modal handlers
+## embedding handlers
 ##
 
-def embed_openai(reply):
+def embed_payload_openai(text):
+    return {'input': text}
+
+def embed_response_openai(reply):
     return reply['data'][0]['embedding']
+
+def embed_payload_tei(text):
+    return {'inputs': text}
+
+def embed_response_tei(reply):
+    return reply
+
+##
+## tokenize handlers
+##
+
+def tokenize_payload_llamacpp(text):
+    return {'content': text}
+
+def tokenize_response_llamacpp(reply):
+    return reply['tokens']
+
+def tokenize_payload_tei(text):
+    return {'inputs': text}
+
+def tokenize_response_tei(reply):
+    return [
+        [ tk['id'] for tk in tokens ] for tokens in reply
+    ]
+
+def tokenize_payload_vllm(text):
+    return {'prompt': text}
+
+def tokenize_response_vllm(reply):
+    return reply['tokens']
+
+##
+## transcribe handlers
+##
 
 def transcribe_openai(audio):
     return audio.text
@@ -218,28 +255,43 @@ def transcribe_openai(audio):
 ## known llm providers
 ##
 
-DEFAULT_PROVIDER = {
-    'chat_path': 'chat/completions',
-    'embed_path': 'embeddings',
-    'transcribe_path': 'audio/transcriptions',
-    'authorize': authorize_openai,
+DEFAULT_PROVIDER = 'llama.cpp'
+
+DEFAULT_PROVIDER_ARGS = {
+    'authorize': None,
+    'base_url': 'http://localhost:8080',
+    'chat_path': 'v1/chat/completions',
+    'embed_path': 'v1/embeddings',
+    'tokenize_path': 'tokenize',
     'content': content_openai,
     'payload': payload_openai,
     'response': response_openai,
     'stream': stream_openai,
-    'embed': embed_openai,
+    'embed_payload': embed_payload_openai,
+    'embed_response': embed_response_openai,
 }
 
 # presets for known llm providers
 LLM_PROVIDERS = {
-    'local': {
-        'base_url': 'http://localhost:8080/v1',
-        'authorize': None,
+    'llama.cpp': {
+        'tokenize_payload': tokenize_payload_llamacpp,
+        'tokenize_response': tokenize_response_llamacpp,
+    },
+    'tei': {
+        'embed_path': 'embed',
+        'embed_payload': embed_payload_tei,
+        'embed_response': embed_response_tei,
+        'tokenize_payload': tokenize_payload_tei,
+        'tokenize_response': tokenize_response_tei,
+    },
+    'vllm': {
+        'tokenize_payload': tokenize_payload_vllm,
+        'tokenize_response': tokenize_response_vllm,
     },
     'oneping': {
-        'base_url': 'http://localhost:5000',
         'chat_path': 'chat',
-        'authorize': None,
+        'embed_path': 'embed',
+        'tokenize_path': 'tokenize',
         'max_tokens_name': 'max_tokens',
         'content': content_oneping,
         'payload': payload_oneping,
@@ -296,4 +348,4 @@ LLM_PROVIDERS = {
 def get_provider(provider):
     if type(provider) is str:
         provider = LLM_PROVIDERS[provider]
-    return {**DEFAULT_PROVIDER, **provider}
+    return {**DEFAULT_PROVIDER_ARGS, **provider}

@@ -5,7 +5,7 @@ import json
 import requests
 import aiohttp
 
-from .providers import get_provider, convert_history, DEFAULT_MAX_TOKENS
+from .providers import get_provider, convert_history, DEFAULT_MAX_TOKENS, DEFAULT_PROVIDER
 
 ##
 ## printing
@@ -43,7 +43,7 @@ def prepare_auth(prov, api_key=None):
     return headers_auth
 
 def prepare_request(
-    query, provider='local', system=None, image=None, prefill=None, prediction=None, history=None,
+    query, provider=DEFAULT_PROVIDER, system=None, image=None, prefill=None, prediction=None, history=None,
     base_url=None, path=None, api_key=None, model=None, max_tokens=DEFAULT_MAX_TOKENS, **kwargs
 ):
     # external provider details
@@ -76,7 +76,7 @@ def prepare_request(
 ## requests
 ##
 
-def reply(query, provider='local', history=None, prefill=None, dryrun=False, **kwargs):
+def reply(query, provider=DEFAULT_PROVIDER, history=None, prefill=None, dryrun=False, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['response']
@@ -106,7 +106,7 @@ def reply(query, provider='local', history=None, prefill=None, dryrun=False, **k
     # return text
     return text
 
-async def reply_async(query, provider='local', history=None, prefill=None, **kwargs):
+async def reply_async(query, provider=DEFAULT_PROVIDER, history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['response']
@@ -154,7 +154,7 @@ async def iter_lines(inputs):
     if len(buffer) > 0:
         yield buffer
 
-def stream(query, provider='local', history=None, prefill=None, **kwargs):
+def stream(query, provider=DEFAULT_PROVIDER, history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['stream']
@@ -185,7 +185,7 @@ def stream(query, provider='local', history=None, prefill=None, **kwargs):
                 if text is not None:
                     yield text
 
-async def stream_async(query, provider='local', history=None, prefill=None, **kwargs):
+async def stream_async(query, provider=DEFAULT_PROVIDER, history=None, prefill=None, **kwargs):
     # get provider
     prov = get_provider(provider)
     extractor = prov['stream']
@@ -222,27 +222,58 @@ async def stream_async(query, provider='local', history=None, prefill=None, **kw
 ## embeddings
 ##
 
-def embed(text, provider='local', base_url=None, path=None, api_key=None, model=None, **kwargs):
+def embed(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=None, model=None, **kwargs):
     # get provider details
     prov = get_provider(provider)
-    url = prepare_url(prov, 'embed_path', base_url=base_url, path=path)
-    payload_model = prepare_model(prov, 'embed_model', model=model)
+    url = prepare_url(prov, f'embed_path', base_url=base_url, path=path)
 
     # get extra headers
     headers_auth = prepare_auth(prov, api_key=api_key)
     headers_extra = prov.get('headers', {})
 
+    # make payload
+    payload_model = prepare_model(prov, 'embed_model', model=model)
+    payload_message = prov['embed_payload'](text)
+
     # compose request
     headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
-    payload = {'input': text, **payload_model, **kwargs}
+    payload = {**payload_model, **payload_message, **kwargs}
 
     # make the request
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
 
-    # extract text
+    # extract result
     data = response.json()
-    vecs = prov['embed'](data)
+    result = prov['embed_response'](data)
 
-    # return text
-    return vecs
+    # return result
+    return result
+
+def tokenize(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=None, model=None, **kwargs):
+    # get provider details
+    prov = get_provider(provider)
+    url = prepare_url(prov, 'tokenize_path', base_url=base_url, path=path)
+
+    # get extra headers
+    headers_auth = prepare_auth(prov, api_key=api_key)
+    headers_extra = prov.get('headers', {})
+
+    # make payload
+    payload_model = prepare_model(prov, 'embed_model', model=model)
+    payload_message = prov['tokenize_payload'](text)
+
+    # compose request
+    headers = {'Content-Type': 'application/json', **headers_auth, **headers_extra}
+    payload = {**payload_model, **payload_message, **kwargs}
+
+    # make the request
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    response.raise_for_status()
+
+    # extract result
+    data = response.json()
+    result = prov['tokenize_response'](data)
+
+    # return result
+    return result

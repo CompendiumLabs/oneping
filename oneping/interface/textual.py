@@ -12,6 +12,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.reactive import reactive
 from textual.message import Message
 
+from ..providers import DEFAULT_PROVIDER
 from ..utils import cumcat
 from ..chat import Chat
 
@@ -272,7 +273,7 @@ class TextualChat(App):
         self.store = ConvoStore(store) if store is not None else None
 
         # set window title
-        provider = self.chat.kwargs.get('provider', 'local')
+        provider = self.chat.kwargs.get('provider', DEFAULT_PROVIDER)
         self.title = f'oneping: {provider}'
 
     def compose(self):
