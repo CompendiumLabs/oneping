@@ -7,7 +7,7 @@ from ..providers import (
     DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, OPENAI_TRANSCRIBE, AZURE_API_VERSION, AZURE_KEYENV,
     content_openai, convert_history, payload_openai,
     response_openai_native, stream_openai_native,
-    embed_openai, transcribe_openai
+    embed_response_openai, transcribe_response_openai
 )
 
 ##
@@ -71,11 +71,11 @@ def embed(
 ):
     client = make_client(azure_endpoint, azure_deployment=azure_deployment, api_version=api_version, api_key=api_key)
     response = client.embeddings.create(model=model, **kwargs)
-    return embed_openai(response)
+    return embed_response_openai(response)
 
 def transcribe(
     audio, model=OPENAI_TRANSCRIBE, azure_endpoint=None, azure_deployment=None, api_version=AZURE_API_VERSION, api_key=None, **kwargs
 ):
     client = make_client(azure_endpoint, azure_deployment=azure_deployment, api_version=api_version, api_key=api_key)
     response = client.audio.transcriptions.create(model=model, file=audio, **kwargs)
-    return transcribe_openai(response)
+    return transcribe_response_openai(response)

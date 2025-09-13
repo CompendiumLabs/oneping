@@ -15,10 +15,10 @@ DEFAULT_MAX_TOKENS = int(os.environ.get('ONEPING_MAX_TOKENS', 2048))
 ## models
 ##
 
-OPENAI_MODEL = 'gpt-4o'
+OPENAI_MODEL = 'gpt-5'
 OPENAI_EMBED = 'text-embedding-3-large'
-OPENAI_TRANSCRIBE = 'gpt-4o-transcribe'
-ANTHROPIC_MODEL = 'claude-3-7-sonnet-latest'
+OPENAI_TRANSCRIBE = 'gpt-5-transcribe'
+ANTHROPIC_MODEL = 'claude-opus-4-1-20250805'
 FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p3-70b-instruct'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
 DEEPSEEK_MODEL = 'deepseek-chat'
@@ -212,7 +212,9 @@ def embed_payload_openai(text):
     return {'input': text}
 
 def embed_response_openai(reply):
-    return reply['data'][0]['embedding']
+    return [
+        item['embedding'] for item in reply['data']
+    ]
 
 def embed_payload_tei(text):
     return {'inputs': text}
@@ -248,7 +250,7 @@ def tokenize_response_vllm(reply):
 ## transcribe handlers
 ##
 
-def transcribe_openai(audio):
+def transcribe_response_openai(audio):
     return audio.text
 
 ##

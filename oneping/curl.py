@@ -222,7 +222,7 @@ async def stream_async(query, provider=DEFAULT_PROVIDER, history=None, prefill=N
 ## embeddings
 ##
 
-def embed(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=None, model=None, **kwargs):
+def embed(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=None, model=None, timeout=None, **kwargs):
     # get provider details
     prov = get_provider(provider)
     url = prepare_url(prov, f'embed_path', base_url=base_url, path=path)
@@ -240,7 +240,7 @@ def embed(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=Non
     payload = {**payload_model, **payload_message, **kwargs}
 
     # make the request
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=timeout)
     response.raise_for_status()
 
     # extract result
@@ -250,7 +250,7 @@ def embed(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=Non
     # return result
     return result
 
-def tokenize(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=None, model=None, **kwargs):
+def tokenize(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=None, model=None, timeout=None, **kwargs):
     # get provider details
     prov = get_provider(provider)
     url = prepare_url(prov, 'tokenize_path', base_url=base_url, path=path)
@@ -268,7 +268,7 @@ def tokenize(text, provider=DEFAULT_PROVIDER, base_url=None, path=None, api_key=
     payload = {**payload_model, **payload_message, **kwargs}
 
     # make the request
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=timeout)
     response.raise_for_status()
 
     # extract result

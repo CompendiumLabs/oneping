@@ -7,7 +7,7 @@ from ..providers import (
     DEFAULT_SYSTEM, OPENAI_MODEL, OPENAI_EMBED, OPENAI_TRANSCRIBE, OPENAI_KEYENV,
     content_openai, convert_history, payload_openai,
     response_openai_native, stream_openai_native,
-    embed_openai, transcribe_openai
+    embed_response_openai, transcribe_response_openai
 )
 
 ##
@@ -23,10 +23,10 @@ def make_payload(query, image=None, prediction=None, system=None, history=None):
 ## common interface
 ##
 
-def make_client(api_key=None, async_client=False):
+def make_client(api_key=None, async_client=False, base_url=None):
     api_key = api_key if api_key is not None else os.environ.get(OPENAI_KEYENV)
     client_class = openai.AsyncOpenAI if async_client else openai.OpenAI
-    return client_class(api_key=api_key)
+    return client_class(api_key=api_key, base_url=base_url)
 
 def reply(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=OPENAI_MODEL, max_tokens=None, base_url=None, **kwargs):
     client = make_client(api_key=api_key, base_url=base_url)
@@ -57,9 +57,9 @@ async def stream_async(query, image=None, history=None, prefill=None, prediction
 def embed(query, model=OPENAI_EMBED, api_key=None, base_url=None, **kwargs):
     client = make_client(api_key=api_key, base_url=base_url)
     response = client.embeddings.create(query, model=model, **kwargs)
-    return embed_openai(response)
+    return embed_response_openai(response)
 
 def transcribe(audio, model=OPENAI_TRANSCRIBE, api_key=None, base_url=None, **kwargs):
     client = make_client(api_key=api_key, base_url=base_url)
     response = client.audio.transcriptions.create(audio, model=model, **kwargs)
-    return transcribe_openai(response)
+    return transcribe_response_openai(response)
