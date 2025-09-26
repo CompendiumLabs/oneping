@@ -274,7 +274,8 @@ class TextualChat(App):
 
         # set window title
         provider = self.chat.kwargs.get('provider', DEFAULT_PROVIDER)
-        self.title = f'oneping: {provider}'
+        model = self.chat.kwargs.get('model', "default")
+        self.title = f'oneping: {provider} / {model}'
 
     def compose(self):
         yield Header(id='header')
