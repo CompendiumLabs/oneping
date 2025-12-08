@@ -5,11 +5,17 @@ from .utils import streamer, load_image_uri
 from .api import reply, stream, embed
 from .server import start_llama_cpp, start_router
 
-def get_content(query, image=None):
-    content = {}
-    if query is None:
+def get_content(query=None, image=None):
+    # get query/image from stdin
+    if query is None or query == '-':
         if not sys.stdin.isatty():
             query = sys.stdin.read()
+    if image == '-':
+        if not sys.stdin.isatty():
+            image = sys.stdin.read()
+
+    # return content dict
+    content = {}
     if query is not None:
         content['query'] = query
     if image is not None:
