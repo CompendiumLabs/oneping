@@ -1,0 +1,89 @@
+[default]
+base_url = "http://localhost:8080"
+chat_path = "v1/chat/completions"
+embed_path = "v1/embeddings"
+tokenize_path = "tokenize"
+max_tokens_name = "max_completion_tokens"
+content = "openai"
+payload = "openai"
+response = "openai"
+stream = "openai"
+embed_payload = "openai"
+embed_response = "openai"
+
+[llama-cpp]
+tokenize_payload = "llama-cpp"
+tokenize_response = "llama-cpp"
+
+[tei]
+embed_path = "embed"
+embed_payload = "tei"
+embed_response = "tei"
+tokenize_payload = "tei"
+tokenize_response = "tei"
+
+[vllm]
+tokenize_payload = "vllm"
+tokenize_response = "vllm"
+
+[oneping]
+chat_path = "chat"
+embed_path = "embed"
+tokenize_path = "tokenize"
+max_tokens_name = "max_tokens"
+content = "oneping"
+payload = "oneping"
+response = "oneping"
+stream = "oneping"
+
+[openai]
+base_url = "https://api.openai.com"
+api_key_env = "OPENAI_API_KEY"
+authorize = "openai"
+chat_model = "gpt-5"
+embed_model = "text-embedding-3-large"
+
+[anthropic]
+base_url = "https://api.anthropic.com"
+authorize = "anthropic"
+chat_path = "messages"
+max_tokens_name = "max_tokens"
+content = "anthropic"
+payload = "anthropic"
+response = "anthropic"
+stream = "anthropic"
+api_key_env = "ANTHROPIC_API_KEY"
+chat_model = "claude-opus-4-1-20250805"
+
+[anthropic.headers]
+anthropic-version = "2023-06-01"
+
+[google]
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+api_key_env = "GEMINI_API_KEY"
+chat_model = "gemini-2.0-flash-exp"
+embed_model = "gemini-embedding-exp-03-07"
+
+[xai]
+base_url = "https://api.x.ai/v1"
+api_key_env = "XAI_API_KEY"
+chat_model = "grok-4"
+
+[fireworks]
+base_url = "https://api.fireworks.ai/inference"
+api_key_env = "FIREWORKS_API_KEY"
+chat_model = "accounts/fireworks/models/llama-v3p3-70b-instruct"
+
+[groq]
+base_url = "https://api.groq.com/openai"
+api_key_env = "GROQ_API_KEY"
+chat_model = "llama-3.3-70b-versatile"
+
+[deepseek]
+base_url = "https://api.deepseek.com"
+api_key_env = "DEEPSEEK_API_KEY"
+chat_model = "deepseek-chat"
+
+[azure]
+api_key_env = "AZURE_API_KEY"
+chat_model = "gpt-5"

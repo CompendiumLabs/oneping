@@ -1,6 +1,6 @@
 # chat interface
 
-from .providers import DEFAULT_SYSTEM, content_oneping
+from .providers import CONFIG as C, content_oneping
 from .api import reply, reply_async, stream, stream_async
 
 def history_update(query, text, image=None):
@@ -12,7 +12,7 @@ def history_update(query, text, image=None):
 # chat interface
 class Chat:
     def __init__(self, system=None, **kwargs):
-        self.system = DEFAULT_SYSTEM if system is None else system
+        self.system = C.system if system is None else system
         self.kwargs = kwargs
         self.clear()
 

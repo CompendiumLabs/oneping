@@ -5,7 +5,7 @@ import os
 from google import genai
 from google.genai.types import Part, Content, GenerateContentConfig
 
-from ..providers import DEFAULT_SYSTEM, GOOGLE_MODEL, GOOGLE_EMBED, GOOGLE_KEYENV
+from ..providers import CONFIG as C, PROVIDERS as P
 from ..utils import parse_image_uri
 
 ##
@@ -43,10 +43,10 @@ def convert_history(history):
         for message in history
     ]
 
-def make_config(system=DEFAULT_SYSTEM, max_tokens=None, **kwargs):
+def make_config(system=C.system, max_tokens=None, **kwargs):
     return GenerateContentConfig(systemInstruction=system, maxOutputTokens=max_tokens, **kwargs)
 
-def make_chat(client, model=GOOGLE_MODEL, history=None, **kwargs):
+def make_chat(client, model=P.google.chat_model, history=None, **kwargs):
     config = make_config(**kwargs)
     history = convert_history(history)
     return client.chats.create(model=model, config=config, history=history)
@@ -55,26 +55,26 @@ def make_chat(client, model=GOOGLE_MODEL, history=None, **kwargs):
 ## common interface
 ##
 
-def make_client(api_key=None, async_client=False):
-    api_key = api_key if api_key is not None else os.environ.get(GOOGLE_KEYENV)
+def make_client(async_client=False, api_key=None):
+    api_key = api_key if api_key is not None else os.environ.get(P.google.api_key_env)
     client = genai.client.Client(api_key=api_key)
     return genai.client.AsyncClient(client) if async_client else client
 
-def reply(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+def reply(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.google.chat_model, **kwargs):
     client = make_client(api_key=api_key)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
     response = chat.send_message(content)
     return response.text
 
-async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.google.chat_model, **kwargs):
     client = make_client(api_key=api_key, async_client=True)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
     response = await chat.send_message(content)
     return response.text
 
-def stream(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+def stream(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.google.chat_model, **kwargs):
     client = make_client(api_key=api_key)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
@@ -82,7 +82,7 @@ def stream(query, image=None, history=None, prefill=None, prediction=None, syste
     for chunk in stream:
         yield chunk.text
 
-async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=GOOGLE_MODEL, **kwargs):
+async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.google.chat_model, **kwargs):
     client = make_client(api_key=api_key, async_client=True)
     chat = make_chat(client, model=model, system=system, history=history, **kwargs)
     content = make_content(query, image=image)
@@ -90,7 +90,7 @@ async def stream_async(query, image=None, history=None, prefill=None, prediction
     async for chunk in stream:
         yield chunk.text
 
-def embed(text, api_key=None, model=GOOGLE_EMBED):
+def embed(text, api_key=None, model=P.google.embed_model):
     client = make_client(api_key=api_key)
     response = client.models.embed_content(model=model, content=text)
     return response.embeddings[0].values

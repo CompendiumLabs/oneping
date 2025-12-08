@@ -4,7 +4,7 @@ import os
 from xai_sdk import Client, AsyncClient
 from xai_sdk.chat import system as _system, user as _user, assistant as _assistant, image as _image, text as _text
 
-from ..providers import DEFAULT_SYSTEM, XAI_MODEL, XAI_KEYENV
+from ..providers import CONFIG as C, PROVIDERS as P
 
 ##
 ## helper functions
@@ -59,8 +59,8 @@ def make_chat(client, model, query=None, image=None, system=None, history=None, 
     # make chat object
     return client.chat.create(model=model, messages=messages, max_tokens=max_tokens)
 
-def make_client(api_key=None, async_client=False):
-    api_key = api_key if api_key is not None else os.environ.get(XAI_KEYENV)
+def make_client(async_client=False, api_key=None):
+    api_key = api_key if api_key is not None else os.environ.get(P.xai.api_key_env)
     client_class = AsyncClient if async_client else Client
     return client_class(api_key=api_key)
 
@@ -68,26 +68,26 @@ def make_client(api_key=None, async_client=False):
 ## common interface
 ##
 
-def reply(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=XAI_MODEL, max_tokens=None, **kwargs):
+def reply(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.xai.chat_model, max_tokens=None, **kwargs):
     client = make_client(api_key=api_key)
     chat = make_chat(client, model, query, image=image, system=system, history=history, max_tokens=max_tokens)
     response = chat.sample()
     return response.content
 
-async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=XAI_MODEL, max_tokens=None, **kwargs):
-    client = make_client(api_key=api_key, async_client=True)
+async def reply_async(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.xai.chat_model, max_tokens=None, **kwargs):
+    client = make_client(async_client=True, api_key=api_key)
     chat = make_chat(client, model, query, image=image, system=system, history=history, max_tokens=max_tokens)
     response = await chat.sample()
     return response.content
 
-def stream(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=XAI_MODEL, max_tokens=None, **kwargs):
+def stream(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.xai.chat_model, max_tokens=None, **kwargs):
     client = make_client(api_key=api_key)
     chat = make_chat(client, model, query, image=image, system=system, history=history, max_tokens=max_tokens)
     for response, chunk in chat.stream():
         yield chunk.content
 
-async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=DEFAULT_SYSTEM, api_key=None, model=XAI_MODEL, max_tokens=None, **kwargs):
-    client = make_client(api_key=api_key, async_client=True)
+async def stream_async(query, image=None, history=None, prefill=None, prediction=None, system=C.system, api_key=None, model=P.xai.chat_model, max_tokens=None, **kwargs):
+    client = make_client(async_client=True, api_key=api_key)
     chat = make_chat(client, model, query, image=image, system=system, history=history, max_tokens=max_tokens)
     async for response, chunk in chat.stream():
         yield chunk.content

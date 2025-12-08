@@ -1,6 +1,5 @@
 # combined interface
 
-from .providers import DEFAULT_PROVIDER
 from .native import has_native
 
 from .curl import (
@@ -21,43 +20,43 @@ from .native import (
     transcribe as transcribe_native,
 )
 
-def reply(query, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def reply(query, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return reply_native(query, provider, **kwargs)
     else:
         return reply_url(query, provider=provider, **kwargs)
 
-def reply_async(query, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def reply_async(query, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return reply_async_native(query, provider, **kwargs)
     else:
         return reply_async_url(query, provider=provider, **kwargs)
 
-def stream(query, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def stream(query, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return stream_native(query, provider, **kwargs)
     else:
         return stream_url(query, provider=provider, **kwargs)
 
-def stream_async(query, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def stream_async(query, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return stream_async_native(query, provider, **kwargs)
     else:
         return stream_async_url(query, provider=provider, **kwargs)
 
-def embed(text, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def embed(text, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return embed_native(text, provider, **kwargs)
     else:
         return embed_url(text, provider=provider, **kwargs)
 
-def tokenize(text, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def tokenize(text, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return tokenize_native(text, provider, **kwargs)
     else:
         return tokenize_url(text, provider=provider, **kwargs)
 
-def transcribe(audio, provider=DEFAULT_PROVIDER, native=True, **kwargs):
+def transcribe(audio, provider=None, native=True, **kwargs):
     if native and has_native(provider):
         return transcribe_native(audio, provider, **kwargs)
     else:

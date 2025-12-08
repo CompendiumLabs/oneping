@@ -1,52 +1,10 @@
 # default arguments
 
 import os
+import toml
+from pathlib import Path
 
-from .utils import parse_image_uri
-
-##
-## system prompt
-##
-
-DEFAULT_SYSTEM = os.environ.get('ONEPING_SYSTEM', None)
-DEFAULT_MAX_TOKENS = int(os.environ.get('ONEPING_MAX_TOKENS', 2048))
-
-##
-## models
-##
-
-OPENAI_MODEL = 'gpt-5'
-OPENAI_EMBED = 'text-embedding-3-large'
-OPENAI_TRANSCRIBE = 'gpt-5-transcribe'
-ANTHROPIC_MODEL = 'claude-opus-4-1-20250805'
-FIREWORKS_MODEL = 'accounts/fireworks/models/llama-v3p3-70b-instruct'
-GROQ_MODEL = 'llama-3.3-70b-versatile'
-DEEPSEEK_MODEL = 'deepseek-chat'
-GOOGLE_MODEL = 'gemini-2.0-flash-exp'
-GOOGLE_EMBED = 'gemini-embedding-exp-03-07'
-XAI_MODEL = 'grok-4'
-
-##
-## environment key names
-##
-
-OPENAI_KEYENV = 'OPENAI_API_KEY'
-ANTHROPIC_KEYENV = 'ANTHROPIC_API_KEY'
-FIREWORKS_KEYENV = 'FIREWORKS_API_KEY'
-GROQ_KEYENV = 'GROQ_API_KEY'
-DEEPSEEK_KEYENV = 'DEEPSEEK_API_KEY'
-AZURE_KEYENV = 'AZURE_OPENAI_API_KEY'
-GOOGLE_KEYENV = 'GEMINI_API_KEY'
-XAI_KEYENV = 'XAI_API_KEY'
-
-##
-## options
-##
-
-AZURE_API_VERSION = '2024-10-21'
-ANTHROPIC_HEADERS = {
-    'anthropic-version': '2023-06-01',
-}
+from .utils import split_image_uri, Config
 
 ##
 ## authorization headers
@@ -78,7 +36,7 @@ def content_openai(text, image=None):
 def content_anthropic(text, image=None):
     if image is None:
         return text
-    media_type, data = parse_image_uri(image)
+    media_type, data = split_image_uri(image)
     source = {
         'type': 'base64', 'media_type': media_type, 'data': data
     }
@@ -254,100 +212,109 @@ def transcribe_response_openai(audio):
     return audio.text
 
 ##
+## default handlers
+##
+
+HANDLERS = {
+    'authorize': {
+        'openai': authorize_openai,
+        'anthropic': authorize_anthropic,
+    },
+    'content': {
+        'openai': content_openai,
+        'anthropic': content_anthropic,
+        'oneping': content_oneping,
+    },
+    'payload': {
+        'openai': payload_openai,
+        'anthropic': payload_anthropic,
+        'oneping': payload_oneping,
+    },
+    'response': {
+        'openai': response_openai,
+        'anthropic': response_anthropic,
+        'oneping': response_oneping,
+    },
+    'stream': {
+        'openai': stream_openai,
+        'anthropic': stream_anthropic,
+        'oneping': stream_oneping,
+    },
+    'embed_payload': {
+        'openai': embed_payload_openai,
+        'tei': embed_payload_tei,
+    },
+    'embed_response': {
+        'openai': embed_response_openai,
+        'tei': embed_response_tei,
+    },
+    'tokenize_payload': {
+        'llama-cpp': tokenize_payload_llamacpp,
+        'tei': tokenize_payload_tei,
+        'vllm': tokenize_payload_vllm,
+    },
+    'tokenize_response': {
+        'llama-cpp': tokenize_response_llamacpp,
+        'tei': tokenize_response_tei,
+        'vllm': tokenize_response_vllm,
+    },
+}
+
+##
 ## known llm providers
 ##
 
-DEFAULT_PROVIDER = 'llama.cpp'
+# get config paths
+library_dir = Path(__file__).parent
+xdg_config_home = Path(os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')))
+user_config_dir = xdg_config_home / 'oneping'
+default_providers_file = library_dir / 'providers.toml'
+user_providers_file = user_config_dir / 'providers.toml'
+default_config_file = library_dir / 'config.toml'
+user_config_file = user_config_dir / 'config.toml'
 
-DEFAULT_PROVIDER_ARGS = {
-    'authorize': None,
-    'base_url': 'http://localhost:8080',
-    'chat_path': 'v1/chat/completions',
-    'embed_path': 'v1/embeddings',
-    'tokenize_path': 'tokenize',
-    'content': content_openai,
-    'payload': payload_openai,
-    'response': response_openai,
-    'stream': stream_openai,
-    'embed_payload': embed_payload_openai,
-    'embed_response': embed_response_openai,
-}
+# fault tolerant toml loader
+def load_toml(file):
+    if os.path.exists(file):
+        return toml.load(file)
+    else:
+        return {}
 
-# presets for known llm providers
-LLM_PROVIDERS = {
-    'llama.cpp': {
-        'tokenize_payload': tokenize_payload_llamacpp,
-        'tokenize_response': tokenize_response_llamacpp,
-    },
-    'tei': {
-        'embed_path': 'embed',
-        'embed_payload': embed_payload_tei,
-        'embed_response': embed_response_tei,
-        'tokenize_payload': tokenize_payload_tei,
-        'tokenize_response': tokenize_response_tei,
-    },
-    'vllm': {
-        'tokenize_payload': tokenize_payload_vllm,
-        'tokenize_response': tokenize_response_vllm,
-    },
-    'oneping': {
-        'chat_path': 'chat',
-        'embed_path': 'embed',
-        'tokenize_path': 'tokenize',
-        'max_tokens_name': 'max_tokens',
-        'content': content_oneping,
-        'payload': payload_oneping,
-        'response': response_oneping,
-        'stream': stream_oneping,
-    },
-    'openai': {
-        'base_url': 'https://api.openai.com/v1',
-        'api_key_env': OPENAI_KEYENV,
-        'chat_model': OPENAI_MODEL,
-        'embed_model': OPENAI_EMBED,
-    },
-    'anthropic': {
-        'base_url': 'https://api.anthropic.com/v1',
-        'chat_path': 'messages',
-        'max_tokens_name': 'max_tokens',
-        'content': content_anthropic,
-        'payload': payload_anthropic,
-        'authorize': authorize_anthropic,
-        'response': response_anthropic,
-        'stream': stream_anthropic,
-        'api_key_env': ANTHROPIC_KEYENV,
-        'chat_model': ANTHROPIC_MODEL,
-        'headers': ANTHROPIC_HEADERS,
-    },
-    'google': {
-        'base_url': 'https://generativelanguage.googleapis.com/v1beta/openai',
-        'api_key_env': GOOGLE_KEYENV,
-        'chat_model': GOOGLE_MODEL,
-        'embed_model': GOOGLE_EMBED,
-    },
-    'xai': {
-        'base_url': 'https://api.x.ai/v1',
-        'api_key_env': XAI_KEYENV,
-        'chat_model': XAI_MODEL,
-    },
-    'fireworks': {
-        'base_url': 'https://api.fireworks.ai/inference',
-        'api_key_env': FIREWORKS_KEYENV,
-        'chat_model': FIREWORKS_MODEL,
-    },
-    'groq': {
-        'base_url': 'https://api.groq.com/openai',
-        'api_key_env': GROQ_KEYENV,
-        'chat_model': GROQ_MODEL,
-    },
-    'deepseek': {
-        'base_url': 'https://api.deepseek.com',
-        'api_key_env': DEEPSEEK_KEYENV,
-        'chat_model': DEEPSEEK_MODEL,
-    },
-}
+# merge config layers
+global PROVIDERS
+global CONFIG
+def reload():
+    global PROVIDERS
+    global CONFIG
 
-def get_provider(provider):
-    if type(provider) is str:
-        provider = LLM_PROVIDERS[provider]
-    return {**DEFAULT_PROVIDER_ARGS, **provider}
+    # reload config from disk
+    DEFAULT_CONFIG = load_toml(default_config_file)
+    USER_CONFIG = load_toml(user_config_file)
+    DEFAULT_PROVIDERS = load_toml(default_providers_file)
+    USER_PROVIDERS = load_toml(user_providers_file)
+
+    # merge provider layers
+    CONFIG = Config({ **DEFAULT_CONFIG, **USER_CONFIG })
+    PROVIDERS = Config({
+        p: Config({ **DEFAULT_PROVIDERS.get(p, {}), **USER_PROVIDERS.get(p, {}) })
+        for p in [ *DEFAULT_PROVIDERS.keys(), *USER_PROVIDERS.keys() ]
+    })
+reload()
+
+def get_provider(provider, **kwargs):
+    # get full provider args
+    if provider is None:
+        provider = {}
+    elif type(provider) is str:
+        provider = PROVIDERS[provider]
+    provider = {**PROVIDERS.default, **provider, **kwargs}
+
+    # replace handler strings with functions
+    for arg, handlers in HANDLERS.items():
+        if arg in provider and type(pval := provider[arg]) is str:
+            if pval not in handlers:
+                raise ValueError(f'Invalid {arg} handler: {pval}')
+            provider[arg] = handlers[pval]
+
+    # return realized provider args
+    return Config(provider)

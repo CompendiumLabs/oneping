@@ -6,6 +6,20 @@ import asyncio
 import mimetypes
 
 ##
+## config class
+##
+
+class Config(dict):
+    def __getitem__(self, key):
+        if key in self:
+            return super().__getitem__(key)
+        else:
+            return None
+
+    def __getattr__(self, key):
+        return self[key]
+
+##
 ## streaming
 ##
 
@@ -34,13 +48,41 @@ async def cumcat(stream):
 ## image utils
 ##
 
-def load_image_uri(image):
-    media_type, _ = mimetypes.guess_type(image)
-    with open(image, 'rb') as f:
-        binary = f.read()
-    data = base64.b64encode(binary).decode('utf-8')
+def make_image_uri(data, media_type='png'):
+    data = base64.b64encode(data).decode('utf-8')
     return f'data:{media_type};base64,{data}'
 
+def split_image_uri(image):
+    match = re.match(r'data:(.*);base64,(.*)', image)
+    if match is None:
+        raise ValueError(f'Invalid image URI: {image}')
+    media_type, base64_data = match.groups()
+    return media_type, base64_data
+
 def parse_image_uri(image):
-    media_type, data = re.match(r'data:(.*);base64,(.*)', image).groups()
+    media_type, base64_data = split_image_uri(image)
+    data = base64.b64decode(base64_data)
     return media_type, data
+
+def load_image_uri(image, media_type=None):
+    if media_type is None:
+        media_type, _ = mimetypes.guess_type(image)
+    with open(image, 'rb') as f:
+        binary = f.read()
+    return make_image_uri(binary, media_type=media_type)
+
+def ensure_image_uri(image, media_type=None):
+    if image is None:
+        return None
+    elif isinstance(image, str):
+        if image.startswith('data:'):
+            return image
+        else:
+            return load_image_uri(image, media_type=media_type)
+    elif isinstance(image, bytes):
+        if media_type is None:
+            return make_image_uri(image)
+        else:
+            return make_image_uri(image, media_type=media_type)
+    else:
+        raise ValueError(f'Invalid image type: {type(image)}')
