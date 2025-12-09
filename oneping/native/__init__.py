@@ -5,7 +5,7 @@
 ##
 
 def has_native(provider):
-    return provider not in (None, 'llama.cpp', 'tei', 'vllm', 'oneping')
+    return provider not in (None, 'llama-cpp', 'tei', 'vllm', 'oneping')
 
 ##
 ## dummy function

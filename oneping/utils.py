@@ -48,7 +48,7 @@ async def cumcat(stream):
 ## image utils
 ##
 
-def make_image_uri(data, media_type='png'):
+def make_image_uri(data, media_type='image/png'):
     data = base64.b64encode(data).decode('utf-8')
     return f'data:{media_type};base64,{data}'
 
