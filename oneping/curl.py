@@ -71,6 +71,7 @@ def prepare_request(
     payload = {**payload_model, **payload_message, **kwargs}
 
     # add in max tokens
+    max_tokens = max_tokens if max_tokens is not None else prov.get('max_tokens_default')
     if max_tokens is not None:
         payload[prov.max_tokens_name] = max_tokens
 

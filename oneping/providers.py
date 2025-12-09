@@ -4,7 +4,7 @@ import os
 import toml
 from pathlib import Path
 
-from .utils import split_image_uri, Config
+from .utils import split_image_uri, ensure_image_uri, Config
 
 ##
 ## authorization headers
@@ -17,7 +17,7 @@ def authorize_openai(api_key):
 
 def authorize_anthropic(api_key):
     return {
-        'x-api-key': api_key,
+        'X-Api-Key': api_key,
     }
 
 ##
@@ -27,7 +27,7 @@ def authorize_anthropic(api_key):
 def content_openai(text, image=None):
     if image is None:
         return text
-    image_url = { 'url': image }
+    image_url = { 'url': ensure_image_uri(image) }
     return [
         { 'type': 'image_url', 'image_url': image_url },
         { 'type': 'text', 'text': text },
@@ -36,7 +36,8 @@ def content_openai(text, image=None):
 def content_anthropic(text, image=None):
     if image is None:
         return text
-    media_type, data = split_image_uri(image)
+    image_url = ensure_image_uri(image)
+    media_type, data = split_image_uri(image_url)
     source = {
         'type': 'base64', 'media_type': media_type, 'data': data
     }
@@ -174,6 +175,11 @@ def embed_response_openai(reply):
         item['embedding'] for item in reply['data']
     ]
 
+def embed_response_openai_native(reply):
+    return [
+        item.embedding for item in reply.data
+    ]
+
 def embed_payload_tei(text):
     return {'inputs': text}
 
@@ -264,21 +270,17 @@ HANDLERS = {
 ## known llm providers
 ##
 
-# get config paths
-library_dir = Path(__file__).parent
-xdg_config_home = Path(os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')))
-user_config_dir = xdg_config_home / 'oneping'
-default_providers_file = library_dir / 'providers.toml'
-user_providers_file = user_config_dir / 'providers.toml'
-default_config_file = library_dir / 'config.toml'
-user_config_file = user_config_dir / 'config.toml'
-
 # fault tolerant toml loader
 def load_toml(file):
     if os.path.exists(file):
         return toml.load(file)
     else:
         return {}
+
+# get config paths
+XDG_LOC = os.path.expanduser('~/.config')
+LIB_DIR = Path(__file__).parent
+XDG_DIR = Path(os.environ.get('XDG_CONFIG_HOME', XDG_LOC))
 
 # merge config layers
 global PROVIDERS
@@ -288,10 +290,10 @@ def reload():
     global CONFIG
 
     # reload config from disk
-    DEFAULT_CONFIG = load_toml(default_config_file)
-    USER_CONFIG = load_toml(user_config_file)
-    DEFAULT_PROVIDERS = load_toml(default_providers_file)
-    USER_PROVIDERS = load_toml(user_providers_file)
+    DEFAULT_CONFIG = load_toml(LIB_DIR / 'config.toml')
+    DEFAULT_PROVIDERS = load_toml(LIB_DIR / 'providers.toml')
+    USER_CONFIG = load_toml(XDG_DIR / 'oneping' / 'config.toml')
+    USER_PROVIDERS = load_toml(XDG_DIR / 'oneping' / 'providers.toml')
 
     # merge provider layers
     CONFIG = Config({ **DEFAULT_CONFIG, **USER_CONFIG })

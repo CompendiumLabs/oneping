@@ -7,7 +7,7 @@ from ..providers import (
     CONFIG as C, PROVIDERS as P,
     content_openai, convert_history, payload_openai,
     response_openai_native, stream_openai_native,
-    embed_response_openai, transcribe_response_openai
+    embed_response_openai_native, transcribe_response_openai
 )
 
 ##
@@ -56,8 +56,8 @@ async def stream_async(query, image=None, history=None, prefill=None, prediction
 
 def embed(query, model=P.openai.embed_model, api_key=None, base_url=None, **kwargs):
     client = make_client(base_url=base_url, api_key=api_key)
-    response = client.embeddings.create(query, model=model, **kwargs)
-    return embed_response_openai(response)
+    response = client.embeddings.create(input=query, model=model, **kwargs)
+    return embed_response_openai_native(response)
 
 def transcribe(audio, model=P.openai.transcribe_model, api_key=None, base_url=None, **kwargs):
     client = make_client(base_url=base_url, api_key=api_key)

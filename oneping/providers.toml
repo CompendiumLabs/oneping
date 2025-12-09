@@ -46,44 +46,53 @@ embed_model = "text-embedding-3-large"
 [anthropic]
 base_url = "https://api.anthropic.com"
 authorize = "anthropic"
-chat_path = "messages"
+chat_path = "v1/messages"
 max_tokens_name = "max_tokens"
+max_tokens_default = 8192
 content = "anthropic"
 payload = "anthropic"
 response = "anthropic"
 stream = "anthropic"
 api_key_env = "ANTHROPIC_API_KEY"
-chat_model = "claude-opus-4-1-20250805"
+chat_model = "claude-sonnet-4-5-20250929"
 
 [anthropic.headers]
 anthropic-version = "2023-06-01"
 
 [google]
-base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+base_url = "https://generativelanguage.googleapis.com/v1beta"
+authorize = "openai"
+chat_path = "openai/chat/completions"
+embed_path = "openai/embeddings"
 api_key_env = "GEMINI_API_KEY"
-chat_model = "gemini-2.0-flash-exp"
-embed_model = "gemini-embedding-exp-03-07"
+chat_model = "gemini-2.5-flash"
+embed_model = "gemini-embedding-001"
 
 [xai]
 base_url = "https://api.x.ai/v1"
+authorize = "openai"
 api_key_env = "XAI_API_KEY"
 chat_model = "grok-4"
 
 [fireworks]
 base_url = "https://api.fireworks.ai/inference"
+authorize = "openai"
 api_key_env = "FIREWORKS_API_KEY"
 chat_model = "accounts/fireworks/models/llama-v3p3-70b-instruct"
 
 [groq]
 base_url = "https://api.groq.com/openai"
+authorize = "openai"
 api_key_env = "GROQ_API_KEY"
 chat_model = "llama-3.3-70b-versatile"
 
 [deepseek]
 base_url = "https://api.deepseek.com"
+authorize = "openai"
 api_key_env = "DEEPSEEK_API_KEY"
 chat_model = "deepseek-chat"
 
 [azure]
 api_key_env = "AZURE_API_KEY"
+authorize = "openai"
 chat_model = "gpt-5"

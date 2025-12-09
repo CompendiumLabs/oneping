@@ -6,7 +6,7 @@ from google import genai
 from google.genai.types import Part, Content, GenerateContentConfig
 
 from ..providers import CONFIG as C, PROVIDERS as P
-from ..utils import parse_image_uri
+from ..utils import ensure_image_uri, parse_image_uri
 
 ##
 ## helper functions
@@ -15,7 +15,8 @@ from ..utils import parse_image_uri
 def make_content(text, image=None):
     parts = [Part(text=text)]
     if image is not None:
-        mime_type, data = parse_image_uri(image)
+        image_url = ensure_image_uri(image)
+        mime_type, data = parse_image_uri(image_url)
         part = Part.from_bytes(data=data, mime_type=mime_type)
         parts.append(part)
     return parts
