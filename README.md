@@ -6,11 +6,11 @@ oneping.reply('Give me a ping, Vasily. One ping only, please.', provider='anthro
 
 ![One ping only, please.](demo/oneping.png)
 
-This is a Python library for querying LLM providers such as OpenAI or Anthropic, as well as local models. The main goal is to create an abstraction layer that makes switching between them seamless. Currently the following providers are supported: `openai`, `anthropic`, `fireworks`, `groq`, `deepseek`, and `local` (local models).
+This is a Python library for querying LLM providers such as OpenAI or Anthropic, as well as local models. The main goal is to create an abstraction layer that makes switching between them seamless. Currently the following external providers are supported: `openai`, `anthropic`, `google`, `xai`, `fireworks`, `groq`, `deepseek`, and `azure`. You can also use local providers such as `llama-cpp` (llama.cpp), `tei` (text-embedding-inference), `vllm` (vllm), and `oneping` (oneping router).
 
-There is also a `Chat` interface that automatically tracks the message history. Kind of departing from the "one ping" notion, but oh well. Additionally, there is a `textual` powered console interface and a `fasthtml` powered web interface. Both are components that can be embedded in other applications.
+There is a `Chat` interface that automatically tracks the message history. Kind of departing from the "one ping" notion, but oh well. Additionally, there is a `textual` powered console interface and a `fasthtml` powered web interface. Both are components that can be embedded in other applications.
 
-Requesting the `local` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, `fireworks-ai`, `groq`, and `deepseek`.
+Requesting the `default` provider will target `localhost` and use an OpenAI-compatible API as in `llama.cpp` or `llama-cpp-python`. The various native libraries are soft dependencies and the library can still partially function with or without any or all of them. The native packages for these providers are: `openai`, `anthropic`, `google`, `xai`, `fireworks-ai`, `groq`, and `deepseek`.
 
 ## Installation
 
@@ -20,9 +20,9 @@ For standard usage, install with:
 pip install oneping
 ```
 
-To install the native provider dependencies add `"[native]"` after `oneping` in the command above. The same goes for the chat interface dependencies with `"[chat]"`.
+To install the native major provider dependencies add `"[native]"` after `oneping` in the command above. The same goes for the chat interface dependencies with `"[chat]"`.
 
-The easiest way to handle authentication is to set an API key environment variable such as: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `FIREWORKS_API_KEY`, etc. You can also pass the `api_key` argument to any of the functions directly.
+The easiest way to handle authentication is to set an API key environment variable such as: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `XAI_API_KEY`, etc. You can also pass the `api_key` argument to any of the functions directly.
 
 ## Library Usage
 
@@ -34,15 +34,15 @@ response = oneping.reply(query, provider='anthropic')
 The `reply` function accepts a number of arguments including (some of these have per-provider defaults):
 
 - `query` (required): The query to send to the LLM (required)
-- `provider` = `local`: The provider to use: `openai`, `anthropic`, `fireworks`, or `local`
+- `provider` = `local`: The provider to use: `openai`, `anthropic`, `google`, etc
 - `system` = `None`: The system prompt to use (not required, but recommended)
 - `prefill` = `None`: Start "assistant" response with a string (Anthropic doesn't like newlines in this)
 - `model` = `None`: Indicate the desired model for the provider (provider default)
-- `max_tokens` = `1024`: The maximum number of tokens to return
-- `history` = `None`: List of prior messages or `True` to request full history as return value
-- `native` = `False`: Use the native provider libraries
-- `url` = `None`: Override the default URL for the provider (provider default)
-- `port` = `8000`: Which port to use for local or custom provider
+- `native` = `False`: Use the native provider libraries when available
+- `history` = `None`: List of prior messages in the conversation history
+- `max_tokens` = `None`: The maximum number of tokens to return (provider default)
+- `base_url` = `None`: Override the default base URL for the provider (provider default)
+- `path` = `None`: Override the default endpoint for the provider (provider default)
 - `api_key` = `None`: The API key to use for non-local providers
 
 For example, to use the OpenAI API with a custom `system` prompt:
@@ -92,6 +92,10 @@ There is also a `textual` powered console interface and a `fasthtml` powered web
 <img src="demo/textual.png" alt="Textual Chat" width="49%">
 <img src="demo/fasthtml.png" alt="FastHTML Chat" width="49%">
 </p>
+
+## Custom Providers
+
+You can add your own providers by creating a TOML file called `providers.toml` in the `~/.config/oneping` directory. Please consult the provider definitions in `oneping/providers.toml` from this repository for the available options.
 
 ## Server
 

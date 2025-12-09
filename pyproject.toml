@@ -1,12 +1,11 @@
 [project]
 name = 'oneping'
-version = '0.6'
+version = '0.6.1'
 description = 'LLM provider abstraction layer.'
 readme = { file = 'README.md' , content-type = 'text/markdown' }
 authors = [{ name = 'Doug Hanley', email = 'doug@compendiumlabs.ai' }]
-license = { text = 'MIT' }
+license = 'MIT'
 classifiers = [
-    'License :: OSI Approved :: MIT License',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
 ]
@@ -18,7 +17,7 @@ requires-python = '>=3.7'
 oneping = 'oneping.__main__:main'
 
 [project.optional-dependencies]
-native = ['openai', 'anthropic', 'fireworks-ai']
+native = ['openai', 'anthropic', 'google', 'xai']
 chat = ['asyncstdlib', 'textual', 'python-fasthtml']
 
 [project.urls]
@@ -28,4 +27,5 @@ Homepage = 'http://github.com/CompendiumLabs/oneping'
 packages = ['oneping', 'oneping.native', 'oneping.interface']
 
 [tool.setuptools.package-data]
+"oneping" = ["providers.toml"]
 "oneping.interface" = ["web/*"]
