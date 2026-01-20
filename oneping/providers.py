@@ -1,7 +1,7 @@
 # default arguments
 
 import os
-import toml
+import tomllib
 from pathlib import Path
 
 from .utils import split_image_uri, ensure_image_uri, Config
