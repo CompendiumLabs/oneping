@@ -273,7 +273,7 @@ HANDLERS = {
 # fault tolerant toml loader
 def load_toml(file):
     if os.path.exists(file):
-        with open(file) as fid:
+        with open(file, 'rb') as fid:
             return tomllib.load(fid)
     else:
         return {}
